@@ -4,29 +4,28 @@
 #include <WebServer.h>
 #include <ESPmDNS.h>
 
-char *ssid = "PLANET BIRU";
-char *password = "kodokterbang";
+char *ssid              = "PLANET BIRU";
+char *password          = "kodokterbang";
 
-char *ssid2 = "OTP-Mini";
-char *password2 = "OTP-Mini";
+char *ssid2             = "OTP-Mini";
+char *password2         = "OTP-Mini";
 
-int eepromDataLength = 50;
-int offsetSSID1 = 0;
-int offsetSSID2 = 50;
+int eepromDataLength    = 50;
+int offsetSSID1         = 0;
+int offsetSSID2         = 50;
 int offsetSSIDPassword1 = 100;
 int offsetSSIDPassword2 = 150;
-int offsetMQTTHost = 200;
-int offsetMQTTPort = 250;
-int offsetMQTTClient = 300;
-int offsetMQTTUsername = 350;
-int offsetMQTTPassword = 400;
+int offsetMQTTHost      = 200;
+int offsetMQTTPort      = 250;
+int offsetMQTTClient    = 300;
+int offsetMQTTUsername  = 350;
+int offsetMQTTPassword  = 400;
 
 WebServer server(80);
 
-// define two tasks for Task1 & Task2
+// Define two tasks for Task1 & Task2
 void Task1( void *pvParameters );
 void Task2( void *pvParameters );
-
 
 void handleRoot() {
     String response = "<!DOCTYPE html><html lang=\"en\"><head> <meta charset=\"UTF-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>OTP-Mini</title> <link rel=\"stylesheet\" href=\"style.css\"> <script src=\"ajax.js\"></script></head><body> <div class=\"all\"> <h3>OTP-Mini</h3> <div class=\"form-item\"> <div class=\"row\"> <div class=\"column\"><input class=\"btn btn-success\" type=\"button\" name=\"save\" id=\"sub\" value=\"Subscribtion\" onclick=\"window.location='subscribtion-configuration.html';\"></div><div class=\"column\"><input class=\"btn btn-success\" type=\"button\" name=\"save\" id=\"ap\" value=\"Access Point\" onclick=\"window.location='ap-configuration.html';\"></div></div></div></div></body></html>";
@@ -72,6 +71,7 @@ void getAPData()
     response += "\"}";
     server.send(200, "application/json", response);
 }
+
 void saveAPData() {
     if(server.method() == HTTP_POST)
     {

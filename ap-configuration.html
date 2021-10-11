@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Point Configuration</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="ajax.js"></script>
+</head>
+<body>
+    <div class="all">
+        <h3>Access Point Configuration</h3>
+        <form action="" method="post">
+            <div class="form-item">
+                <div class="form-label">SSID</div>
+                <div class="form-input">
+                    <input type="text" name="ssid_name" id="ssid_name">
+                </div>
+            </div>
+            <div class="form-item">
+                <div class="form-label">Password</div>
+                <div class="form-input">
+                    <input type="password" name="ssid_password" id="ssid_password">
+                </div>
+            </div>
+            <div class="form-item">
+                <div class="row">
+                    <div class="column"><input class="btn btn-success" type="button" name="save" id="save" value="Save" onclick="return saveAPData();"></div>
+                    <div class="column"><input class="btn btn-danger" type="button" name="save" id="home" value="Home" onclick="window.location='index.html';"></div>
+                  </div> 
+            </div>
+            
+        </form>
+    </div>
+</body>
+</html>
