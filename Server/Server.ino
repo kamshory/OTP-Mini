@@ -319,7 +319,7 @@ void setup(void) {
 
     xTaskCreatePinnedToCore(
     Task2
-    ,  "AnalogReadA3"
+    ,  "Task2"
     ,  1024  // Stack size
     ,  NULL
     ,  1  // Priority
