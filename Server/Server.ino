@@ -1,11 +1,15 @@
+#include <PubSubClient.h>
+#include <SPI.h>
+#include <Ethernet.h>
 #include <EEPROM.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
 
-char *ssid              = "My Access Point";
-char *password          = "mysecret";
+
+char *ssid              = "PLANET BIRU";
+char *password          = "kodokterbang";
 
 char *ssid2             = "OTP-Mini";
 char *password2         = "OTP-Mini";
@@ -17,7 +21,7 @@ int offsetSSIDPassword1 = 100;
 int offsetSSIDPassword2 = 150;
 int offsetMQTTHost      = 200;
 int offsetMQTTPort      = 250;
-int offsetMQTTClient    = 300;
+int offsetclient        = 300;
 int offsetMQTTUsername  = 350;
 int offsetMQTTPassword  = 400;
 
@@ -98,7 +102,7 @@ void getSubData()
     String savedSSIDPassword = readDataString(offsetSSIDPassword2, eepromDataLength);
     String savedMQTTHost = readDataString(offsetMQTTHost, eepromDataLength);
     String savedMQTTPort = readDataString(offsetMQTTPort, eepromDataLength);
-    String savedMQTTClient = readDataString(offsetMQTTClient, eepromDataLength);
+    String savedclient = readDataString(offsetclient, eepromDataLength);
     String savedMQTTUsername = readDataString(offsetMQTTUsername, eepromDataLength);
     String savedMQTTPassword = readDataString(offsetMQTTPassword, eepromDataLength);
 
@@ -117,7 +121,7 @@ void getSubData()
     response += savedMQTTPort;
 
     response += "\", \"mqtt_client\":\"";
-    response += savedMQTTClient;
+    response += savedclient;
 
     response += "\", \"mqtt_username\":\"";
     response += savedMQTTUsername;
@@ -148,8 +152,8 @@ void saveSubData() {
         writeData(offsetMQTTPort, eepromDataLength, savedMQTTPort);
         delay(2);
 
-        String savedMQTTClient = server.arg("mqtt_client");
-        writeData(offsetMQTTClient, eepromDataLength, savedMQTTClient);
+        String savedclient = server.arg("mqtt_client");
+        writeData(offsetclient, eepromDataLength, savedclient);
         delay(2);
 
         String savedMQTTUsername = server.arg("mqtt_username");
@@ -223,12 +227,17 @@ void handleNotFound() {
     server.send(404, "text/plain", message); 
 }
 
+EthernetClient ethClient;
+PubSubClient client(ethClient);
 
 void setup(void) {
 
     EEPROM.begin(1024);
     Serial.begin(115200);
     WiFi.mode(WIFI_AP_STA);
+
+    WiFi.setAutoReconnect(true);
+    WiFi.setAutoConnect(true);
 
     // Configuration WiFi as Workstation
     String ssidStaS = readDataString(offsetSSID2, eepromDataLength);
@@ -279,6 +288,8 @@ void setup(void) {
         }
     }
 
+    
+
     Serial.println("");
     Serial.print("Connected to ");
     Serial.println(ssid);
@@ -325,6 +336,7 @@ void setup(void) {
     ,  NULL 
     ,  1);
 
+    
     Serial.println("Device is ready");
 }
 
@@ -334,13 +346,71 @@ void loop(void) {
     delay(2);
 }
 
+void mqttCallback(char* topic, byte* message, unsigned int length) {
+  char * mqttTopic = "sms";
+  Serial.print("Message arrived on topic: ");
+  Serial.print(topic);
+  Serial.print("Message: ");
+  String messageTemp;
+  
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)message[i]);
+    messageTemp += (char)message[i];
+  }
+  Serial.println();
+
+  // Feel free to add more if statements to control more GPIOs with MQTT
+
+  // If a message is received on the topic esp32/output, you check if the message is either "on" or "off". 
+  // Changes the output state according to the message
+  if (String(topic) == mqttTopic) {
+    
+  }
+}
+
+byte mac[]    = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0xED };
+IPAddress ip(192, 168, 4, 1);
+
+void mqttReconnect() {
+  char * mqttTopic = "sms";
+  char * clientId = "kamshory";
+  char * mqttUsername = "kamshory";
+  char * mqttPassword = "kamshory";
+  Ethernet.begin(mac, ip);
+  client.setServer("192.168.1.3", 1883);
+  
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection to ");
+    Serial.print("192.168.1.3:1883 ");
+    // Attempt to connect
+    if (client.connect(clientId)) {
+      Serial.println("connected");
+      // Subscribe
+      client.subscribe(mqttTopic);
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+
 void Task1(void *pvParameters)  
 {
     (void) pvParameters;
     for (;;) 
     { 
         Serial.println("Task1 Running"); 
-        vTaskDelay(2000);  
+        delay(5000);
+        
+        if (!client.connected()) {
+          mqttReconnect();
+        }
+        client.loop();
+        
     }
 }
 
