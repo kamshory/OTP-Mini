@@ -4,8 +4,8 @@
 #include <WebServer.h>
 #include <ESPmDNS.h>
 
-char *ssid              = "PLANET BIRU";
-char *password          = "kodokterbang";
+char *ssid              = "My Access Point";
+char *password          = "mysecret";
 
 char *ssid2             = "OTP-Mini";
 char *password2         = "OTP-Mini";
@@ -259,7 +259,6 @@ void setup(void) {
     {
         WiFi.softAP(ssid2, password2);
     }
-
 
     IPAddress IP = WiFi.softAPIP();
     Serial.print("AP IP address: ");
