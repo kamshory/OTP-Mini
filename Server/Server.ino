@@ -1,6 +1,6 @@
 #include <PubSubClient.h>
 #include <SPI.h>
-#include <Ethernet.h>
+#include <WiFiClient.h>
 #include <EEPROM.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
@@ -30,6 +30,7 @@ WebServer server(80);
 // Define two tasks for Task1 & Task2
 void Task1( void *pvParameters );
 void Task2( void *pvParameters );
+
 
 void handleRoot() {
     String response = "<!DOCTYPE html><html lang=\"en\"><head> <meta charset=\"UTF-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>OTP-Mini</title> <link rel=\"stylesheet\" href=\"style.css\"> <script src=\"ajax.js\"></script></head><body> <div class=\"all\"> <h3>OTP-Mini</h3> <div class=\"form-item\"> <div class=\"row\"> <div class=\"column\"><input class=\"btn btn-success\" type=\"button\" name=\"save\" id=\"sub\" value=\"Subscribtion\" onclick=\"window.location='subscribtion-configuration.html';\"></div><div class=\"column\"><input class=\"btn btn-success\" type=\"button\" name=\"save\" id=\"ap\" value=\"Access Point\" onclick=\"window.location='ap-configuration.html';\"></div></div></div></div></body></html>";
@@ -138,31 +139,31 @@ void saveSubData() {
     {
         String savedSSID = server.arg("ssid_name");
         writeData(offsetSSID2, eepromDataLength, savedSSID);
-        delay(2);
+        delay(1);
 
         String savedSSIDPassword = server.arg("ssid_password");
         writeData(offsetSSIDPassword2, eepromDataLength, savedSSIDPassword);
-        delay(2);
+        delay(1);
 
         String savedMQTTHost = server.arg("mqtt_host");
         writeData(offsetMQTTHost, eepromDataLength, savedMQTTHost);
-        delay(2);
+        delay(1);
 
         String savedMQTTPort = server.arg("mqtt_port");
         writeData(offsetMQTTPort, eepromDataLength, savedMQTTPort);
-        delay(2);
+        delay(1);
 
         String savedclient = server.arg("mqtt_client");
         writeData(offsetclient, eepromDataLength, savedclient);
-        delay(2);
+        delay(1);
 
         String savedMQTTUsername = server.arg("mqtt_username");
         writeData(offsetMQTTUsername, eepromDataLength, savedMQTTUsername);
-        delay(2);
+        delay(1);
 
         String savedMQTTPassword = server.arg("mqtt_password");
         writeData(offsetMQTTPassword, eepromDataLength, savedMQTTPassword);
-        delay(2);
+        delay(1);
     }
     String message = "{\"status\":\"OK\"}";
     server.send(200, "application/json", message); 
@@ -227,8 +228,31 @@ void handleNotFound() {
     server.send(404, "text/plain", message); 
 }
 
-EthernetClient ethClient;
-PubSubClient client(ethClient);
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void mqttCallback(const char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived on topic: ");
+  Serial.print(topic);
+  Serial.print("Message: ");
+
+  char * mqttTopic = "sms";
+  String messageTemp;
+  
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+    messageTemp += (char)payload[i];
+  }
+  Serial.println();
+
+  // Feel free to add more if statements to control more GPIOs with MQTT
+
+  // If a message is received on the topic esp32/output, you check if the message is either "on" or "off". 
+  // Changes the output state according to the message
+  if (String(topic) == String(mqttTopic)) {
+    
+  }
+}
 
 void setup(void) {
 
@@ -321,9 +345,9 @@ void setup(void) {
     xTaskCreatePinnedToCore(
     Task1
     ,  "Task1"   // A name just for humans
-    ,  1024  // This stack size can be checked & adjusted by reading the Stack Highwater
+    ,  16384  // This stack size can be checked & adjusted by reading the Stack Highwater
     ,  NULL
-    ,  2  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+    ,  3  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
     ,  NULL 
     ,  1);
 
@@ -336,8 +360,12 @@ void setup(void) {
     ,  NULL 
     ,  1);
 
-    
-    Serial.println("Device is ready");
+  char * mqttServer = "server.planetbiru.com";
+  
+  
+  client.setServer(mqttServer, 1883);
+  client.setCallback(mqttCallback);  
+  Serial.println("Device is ready");
 }
 
 void loop(void) {
@@ -346,48 +374,25 @@ void loop(void) {
     delay(2);
 }
 
-void mqttCallback(char* topic, byte* message, unsigned int length) {
-  char * mqttTopic = "sms";
-  Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
-  Serial.print("Message: ");
-  String messageTemp;
-  
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)message[i]);
-    messageTemp += (char)message[i];
-  }
-  Serial.println();
-
-  // Feel free to add more if statements to control more GPIOs with MQTT
-
-  // If a message is received on the topic esp32/output, you check if the message is either "on" or "off". 
-  // Changes the output state according to the message
-  if (String(topic) == mqttTopic) {
-    
-  }
-}
-
-byte mac[]    = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0xED };
-IPAddress ip(192, 168, 4, 1);
-
 void mqttReconnect() {
-  char * mqttTopic = "sms";
-  char * clientId = "kamshory";
-  char * mqttUsername = "kamshory";
-  char * mqttPassword = "kamshory";
-  Ethernet.begin(mac, ip);
-  client.setServer("192.168.1.3", 1883);
+  Serial.print("WiFi status = ");
+  Serial.println(WiFi.status());
   
+  char * clientId = "php";
+  char * mqttUsername = "user";
+  char * mqttPassword = "pass";
+  char * mqttTopic = "sms";
+ 
   // Loop until we're reconnected
   while (!client.connected()) {
-    Serial.print("Attempting MQTT connection to ");
-    Serial.print("192.168.1.3:1883 ");
+    Serial.print("Attempting MQTT connection ");
     // Attempt to connect
-    if (client.connect(clientId)) {
+    if (client.connect(clientId, mqttUsername, mqttPassword)) {
       Serial.println("connected");
       // Subscribe
-      client.subscribe(mqttTopic);
+      
+      boolean sub = client.subscribe("sms");
+      Serial.println(sub);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -396,6 +401,8 @@ void mqttReconnect() {
       delay(5000);
     }
   }
+  Serial.println("OK");
+  
 }
 
 void Task1(void *pvParameters)  
@@ -403,13 +410,13 @@ void Task1(void *pvParameters)
     (void) pvParameters;
     for (;;) 
     { 
-        Serial.println("Task1 Running"); 
-        delay(5000);
+        //Serial.println("Task1 Running"); 
         
-        if (!client.connected()) {
+        if (!client.connected()) {        
           mqttReconnect();
         }
         client.loop();
+        vTaskDelay(200);
         
     }
 }
