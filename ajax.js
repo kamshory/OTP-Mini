@@ -112,6 +112,10 @@ function loadSubData()
             document.querySelector('#mqtt_client').value = data.mqtt_client;
             document.querySelector('#mqtt_username').value = data.mqtt_username;
             document.querySelector('#mqtt_password').value = data.mqtt_password;
+
+            document.querySelector('#mqtt_topic').value = data.mqtt_topic;
+            document.querySelector('#mqtt_qos').value = data.mqtt_qos;
+            document.querySelector('#enable').value = data.enable;
         },
         true
     );
