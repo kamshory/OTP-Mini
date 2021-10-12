@@ -232,11 +232,12 @@ PubSubClient client(espClient);
 
 void mqttCallback(const char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
+  
+  Serial.println(topic);
   Serial.print("Message: ");
 
   char * mqttTopic = "sms";
-  String messageTemp;
+  String messageTemp = "";
   
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
@@ -251,6 +252,7 @@ void mqttCallback(const char* topic, byte* payload, unsigned int length) {
   if (String(topic) == String(mqttTopic)) {
     
   }
+  
 }
 
 void setup(void) {
@@ -344,7 +346,7 @@ void setup(void) {
     xTaskCreatePinnedToCore(
     Task1
     ,  "Task1"   // A name just for humans
-    ,  16384  // This stack size can be checked & adjusted by reading the Stack Highwater
+    ,  32768  // This stack size can be checked & adjusted by reading the Stack Highwater
     ,  NULL
     ,  3  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
     ,  NULL 
@@ -359,7 +361,7 @@ void setup(void) {
     ,  NULL 
     ,  1);
 
-  char * mqttServer = "192.168.1.3";
+  char * mqttServer = "server.planetbiru.com";
   
   
   client.setServer(mqttServer, 1883);
@@ -374,9 +376,6 @@ void loop(void) {
 }
 
 void mqttReconnect() {
-  Serial.print("WiFi status = ");
-  Serial.println(WiFi.status());
-  
   char * clientId = "php";
   char * mqttUsername = "user";
   char * mqttPassword = "pass";
@@ -384,14 +383,9 @@ void mqttReconnect() {
  
   // Loop until we're reconnected
   while (!client.connected()) {
-    Serial.print("Attempting MQTT connection ");
     // Attempt to connect
-    if (client.connect(clientId, mqttUsername, mqttPassword)) {
-      Serial.println("connected");
-      // Subscribe
-      
-      boolean sub = client.subscribe("sms");
-      Serial.println(sub);
+    if (client.connect(clientId, mqttUsername, mqttPassword)) {      
+      boolean sub = client.subscribe("sms", 0);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -400,8 +394,6 @@ void mqttReconnect() {
       delay(5000);
     }
   }
-  Serial.println("OK");
-  
 }
 
 void Task1(void *pvParameters)  
@@ -409,14 +401,11 @@ void Task1(void *pvParameters)
     (void) pvParameters;
     for (;;) 
     { 
-        //Serial.println("Task1 Running"); 
-        
         if (!client.connected()) {        
           mqttReconnect();
         }
         client.loop();
-        vTaskDelay(200);
-        
+        vTaskDelay(200);       
     }
 }
 
