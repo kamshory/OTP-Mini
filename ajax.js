@@ -71,6 +71,9 @@ function saveSubData()
     var mqtt_client = document.querySelector('#mqtt_client').value;
     var mqtt_username = document.querySelector('#mqtt_username').value;
     var mqtt_password = document.querySelector('#mqtt_password').value;
+    var mqtt_topic = document.querySelector('#mqtt_topic').value;
+    var mqtt_qos = document.querySelector('#mqtt_qos').value;
+    var enable = document.querySelector('#enable').value;
     ajax.post(
         'save-subscribtion', 
         {
@@ -81,7 +84,10 @@ function saveSubData()
             mqtt_port:mqtt_port, 
             mqtt_client:mqtt_client, 
             mqtt_username:mqtt_username, 
-            mqtt_password:mqtt_password
+            mqtt_password:mqtt_password,
+            mqtt_topic:mqtt_topic,
+            mqtt_qos:mqtt_qos,
+            enable:enable
         },
         function(response){
 

@@ -55,6 +55,27 @@
                 </div>
             </div>
             <div class="form-item">
+                <div class="form-label">Topic</div>
+                <div class="form-input">
+                    <input type="text" name="mqtt_topic" id="mqtt_topic">
+                </div>
+            </div>
+            <div class="form-item">
+                <div class="form-label">MQTT QoS</div>
+                <div class="form-input">
+                    <input type="number" name="mqtt_qos" id="mqtt_qos">
+                </div>
+            </div>
+            <div class="form-item">
+                <div class="form-label">Enable</div>
+                <div class="form-input">
+                    <select name="enable" id="enable">
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-item">
                 <div class="row">
                     <div class="column"><input class="btn btn-success" type="button" name="save" id="save" value="Save" onclick="return saveSubData();"></div>
                     <div class="column"><input class="btn btn-danger" type="button" name="save" id="home" value="Home" onclick="window.location='index.html';"></div>

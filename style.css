@@ -24,7 +24,8 @@ h3{
 }
 .form-input input[type="text"],
 .form-input input[type="number"],
-.form-input input[type="password"]{
+.form-input input[type="password"], 
+.form-input select{
     width: 100%;
     box-sizing: border-box;
     padding: 6px 10px;
@@ -34,7 +35,9 @@ h3{
     margin-bottom: 2px;
 }
 .form-input input[type="text"]:focus,
-.form-input input[type="password"]:focus{
+.form-input input[type="number"]:focus,
+.form-input input[type="password"]:focus,
+.form-input select:focus{
     outline: none;
 }
 .btn
