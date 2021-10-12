@@ -8,7 +8,7 @@
 
 
 char *ssid              = "PLANET BIRU";
-char *password          = "kodokterbang";
+char *password          = "burungperkutut";
 
 char *ssid2             = "OTP-Mini";
 char *password2         = "OTP-Mini";
@@ -361,7 +361,7 @@ void setup(void) {
     ,  NULL 
     ,  1);
 
-  char * mqttServer = "server.planetbiru.com";
+  char * mqttServer = "example.planetbiru.com";
   
   
   client.setServer(mqttServer, 1883);
