@@ -3,7 +3,6 @@
 #include <WiFiClient.h>
 #include <EEPROM.h>
 #include <WiFi.h>
-#include <WiFiClient.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
 
@@ -360,7 +359,7 @@ void setup(void) {
     ,  NULL 
     ,  1);
 
-  char * mqttServer = "server.planetbiru.com";
+  char * mqttServer = "192.168.1.3";
   
   
   client.setServer(mqttServer, 1883);
