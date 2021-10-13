@@ -6,6 +6,9 @@
 #include <WebServer.h>
 #include <ESPmDNS.h>
 
+#define TINY_GSM_MODEM_SIM800 
+#include <TinyGsmClient.h> // biblioteca com comandos GSM
+
 char *ssid              = "PLANET BIRU";
 char *password          = "burungperkutut";
 
@@ -28,6 +31,32 @@ int offsetMQTTQOS       = 460;
 int offsetEnable        = 470;
 
 WebServer server(80);
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+HardwareSerial SerialGSM(1);
+TinyGsm modemGSM(SerialGSM);
+ 
+const int BAUD_RATE = 9600;
+ 
+// pinos aonde os reles serão ligados e RX / TX aonde o SIM800L será ligado
+const int RX_PIN = 16, TX_PIN = 17;
+ 
+//Access point name
+const char *APN = "telkomsel";
+const char *USER = "";
+const char *PASSWORD = "";
+
 
 // Define two tasks for Task1 &Task2
 void Task1(void *pvParameters);
@@ -307,7 +336,6 @@ void setup(void)
     WiFi.setAutoConnect(true);
     WiFi.mode(WIFI_AP_STA);
   }
-  else {}
 
   // Configuration WiFi as Access Point
   String ssidAPS = readDataString(offsetSSID1, eepromDataLength50);
@@ -376,6 +404,48 @@ void setup(void)
   }
 
   Serial.println("Before binding path");
+  
+  setupWebServer();
+  setupGSM();
+
+  // Now set up two tasks to run independently.
+  xTaskCreatePinnedToCore(    
+    Task1
+  , "Task1"   // A name just for humans
+  , 32768     // This stack size can be checked &adjusted by reading the Stack Highwater
+  , NULL
+  , 3         // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+  , NULL
+  , 1);
+
+  Serial.println("After task 1");
+
+  xTaskCreatePinnedToCore(    
+    Task2
+  , "Task2"
+  , 1024      // Stack size
+  , NULL
+  , 1         // Priority
+  , NULL
+  , 1);
+
+  Serial.println("After task 2");
+
+  Serial.println("Device is ready");
+}
+
+String sendAT(String command)
+{
+  String response = "";
+  Serial.println(command);
+  SerialGSM.println(command);
+  while(!SerialGSM.available());
+  response = SerialGSM.readString();
+  return response;
+}
+
+void setupWebServer()
+{
   server.on("/", handleRoot);
   server.on("/index.html", handleRoot);
   server.on("/ap-configuration.html", handleAP);
@@ -395,22 +465,20 @@ void setup(void)
   Serial.println("After binding path");
   server.begin();
   Serial.println("After begin server");
+}
 
-  // Now set up two tasks to run independently.
-  xTaskCreatePinnedToCore(    Task1, "Task1"  // A name just for humans
-  , 32768 // This stack size can be checked &adjusted by reading the Stack Highwater
-  , NULL, 3 // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
-  , NULL, 1);
 
-  Serial.println("After task 1");
-
-  xTaskCreatePinnedToCore(    Task2, "Task2", 1024  // Stack size
-  , NULL, 1 // Priority
-  , NULL, 1);
-
-  Serial.println("After task 2");
-
-  Serial.println("Device is ready");
+// inicializa GSM
+void setupGSM()
+{
+  Serial.println("Setup GSM...");
+  SerialGSM.begin(BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN, false);
+  Serial.println(modemGSM.getModemInfo());
+  if(sendAT("AT+CMGF=1").indexOf("OK") < 0)
+  {
+    Serial.println("SMS Text mode Error");
+  }  
+  Serial.println("SMS Txt mode OK");
 }
 
 void loop(void)
@@ -422,16 +490,13 @@ void loop(void)
 
 void mqttReconnect()
 {
-
   String savedclient = readDataString(offsetclient, eepromDataLength50);
   String savedMQTTUsername = readDataString(offsetMQTTUsername, eepromDataLength50);
   String savedMQTTPassword = readDataString(offsetMQTTPassword, eepromDataLength50);
   String savedMQTTTopic = readDataString(offsetMQTTTopic, eepromDataLength50);
   String savedMQTTQOS = readDataString(offsetMQTTQOS, eepromDataLength50);
-
   String savedMQTTHost = readDataString(offsetMQTTHost, eepromDataLength50);
   String savedMQTTPort = readDataString(offsetMQTTPort, eepromDataLength50);
-
   const char *clientId = savedclient.c_str();
   const char *mqttUsername = savedMQTTUsername.c_str();
   const char *mqttPassword = savedMQTTPassword.c_str();
@@ -449,13 +514,13 @@ void mqttReconnect()
   while (!client.connected())
   {
     // Attempt to connect
-    if (client.connect(clientId, mqttUsername, mqttPassword))
+    if (client.connect(savedclient.c_str(), savedMQTTUsername.c_str(), savedMQTTPassword.c_str()))
     {
-      boolean sub = client.subscribe(mqttTopic, mqttQOS);
+      boolean sub = client.subscribe(savedMQTTTopic.c_str(), savedMQTTQOS.toInt());
     }
     else
     {
-      Serial.print("failed, rc=");
+      Serial.print("failed, rc = ");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying

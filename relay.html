@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relay</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="ajax.js"></script>
+    <style>
+    .flex-container {
+        display: flex;
+        flex-direction: row;
+        padding: 2px 0;
+        margin-bottom: 10px;
+    }
+
+    .flex-container > .flex-item {
+        flex: auto;
+    }
+
+    .flex-container > .raw-item {
+        width: 40px;
+        padding-top: 4px;
+        
+    }
+
+    .flex-container h4{
+        margin: 0;
+    }
+    .flex-container p{
+        margin: 0;
+    }
+
+    input[type=checkbox]{
+        height: 0;
+        width: 0;
+        visibility: hidden;
+        position: absolute;
+    }
+
+    label {
+        cursor: pointer;
+        text-indent: -9999px;
+        width: 40px;
+        height: 20px;
+        background: grey;
+        display: block;
+        border-radius: 20px;
+        position: relative;
+    }
+
+    label:after {
+        content: '';
+        position: absolute;
+        top: 1px;
+        left: 1px;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border-radius: 18px;
+        transition: 0.2s;
+    }
+
+    input:checked + label {
+        background: #63bb40;
+    }
+
+    input:checked + label:after {
+        left: calc(100% - 1px);
+        transform: translateX(-100%);
+    }
+
+    label:active:after {
+        width: 22px;
+    }
+    /*
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    */
+    </style>
+</head>
+<body>
+    <div class="all">
+        <h3>Relay</h3>
+        
+        <div class="form-item">
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h4>Lapu</h4>
+                    <p>Lampu depan, lampu dapur, lampu kamar</p>
+                </div>
+                <div class="raw-item">
+                    <input type="checkbox" id="switch1" /><label for="switch1">Toggle</label>
+                </div>
+            </div> 
+
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h4>Kulkas</h4>
+                    <p>Colokan stabilizer kulkas</p>
+                </div>
+                <div class="raw-item">
+                    <input type="checkbox" id="switch2" /><label for="switch2">Toggle</label>
+                </div>
+            </div> 
+
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h4>AC</h4>
+                    <p>Colokan AC</p>
+                </div>
+                <div class="raw-item">
+                    <input type="checkbox" id="switch3" /><label for="switch3">Toggle</label>
+                </div>
+            </div> 
+
+        </div>
+    </div>
+</body>
+</html>
