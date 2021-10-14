@@ -14,16 +14,17 @@ char *password2         = "OTP-Mini";
 
 int eepromDataLength50  = 50;
 int eepromDataLength10  = 10;
+
 int offsetSSID1         = 0;
 int offsetSSID2         = 50;
 int offsetSSIDPassword1 = 100;
 int offsetSSIDPassword2 = 150;
 int offsetMQTTHost      = 200;
 int offsetMQTTPort      = 250;
-int offsetclient        = 300;
-int offsetMQTTUsername  = 350;
-int offsetMQTTPassword  = 400;
-int offsetMQTTTopic     = 450;
+int offsetclient        = 260;
+int offsetMQTTUsername  = 310;
+int offsetMQTTPassword  = 360;
+int offsetMQTTTopic     = 410;
 int offsetMQTTQOS       = 460;
 int offsetEnable        = 470;
 
@@ -294,6 +295,11 @@ void mqttCallback(const char *topic, byte *payload, unsigned int length)
 
 String sysEnable = "0";
 
+
+IPAddress apLocalID(192,168,4,1);
+IPAddress apGateway(192,168,4,2);
+IPAddress apSubnet(255,255,255,0);
+
 void setup(void)
 {
   EEPROM.begin(1024);
@@ -323,6 +329,8 @@ void setup(void)
   {
     WiFi.softAP(ssid2, password2);
   }
+
+  WiFi.softAPConfig(apLocalID, apGateway, apSubnet);
 
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");

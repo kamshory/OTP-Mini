@@ -23,25 +23,14 @@ int offsetSSIDPassword1 = 100;
 int offsetSSIDPassword2 = 150;
 int offsetMQTTHost      = 200;
 int offsetMQTTPort      = 250;
-int offsetclient        = 300;
-int offsetMQTTUsername  = 350;
-int offsetMQTTPassword  = 400;
-int offsetMQTTTopic     = 450;
+int offsetclient        = 260;
+int offsetMQTTUsername  = 310;
+int offsetMQTTPassword  = 360;
+int offsetMQTTTopic     = 410;
 int offsetMQTTQOS       = 460;
 int offsetEnable        = 470;
 
 WebServer server(80);
-
-
-
-
-
-
-
-
-
-
-
 
  
 HardwareSerial SerialGSM(1);
@@ -325,7 +314,7 @@ String sysEnable = "0";
 
 void setup(void)
 {
-  EEPROM.begin(1024);
+  EEPROM.begin(4096);
   Serial.begin(115200);
 
   sysEnable = readDataString(offsetEnable, eepromDataLength10);
