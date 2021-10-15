@@ -25,6 +25,7 @@ h3{
 .form-input input[type="text"],
 .form-input input[type="number"],
 .form-input input[type="password"], 
+.form-input input[type="ipaddress"], 
 .form-input select{
     width: 100%;
     box-sizing: border-box;
@@ -34,9 +35,13 @@ h3{
     background-color: #FFFFFF;
     margin-bottom: 2px;
 }
+.form-input input[type="ipaddress"].invalid-ip{
+    border:1px solid #CC0000;
+}
 .form-input input[type="text"]:focus,
 .form-input input[type="number"]:focus,
 .form-input input[type="password"]:focus,
+.form-input input[type="ipaddress"]:focus,
 .form-input select:focus{
     outline: none;
 }

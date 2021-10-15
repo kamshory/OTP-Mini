@@ -104,18 +104,24 @@ function loadSubData()
             
         },
         function(response){
-            var data = JSON.parse(response);
-            document.querySelector('#ssid_name').value = data.ssid_name;
-            document.querySelector('#ssid_password').value = data.ssid_password;
-            document.querySelector('#mqtt_host').value = data.mqtt_host;
-            document.querySelector('#mqtt_port').value = data.mqtt_port;
-            document.querySelector('#mqtt_client').value = data.mqtt_client;
-            document.querySelector('#mqtt_username').value = data.mqtt_username;
-            document.querySelector('#mqtt_password').value = data.mqtt_password;
+            try{
+                var data = JSON.parse(response);
+                document.querySelector('#ssid_name').value = data.ssid_name;
+                document.querySelector('#ssid_password').value = data.ssid_password;
+                document.querySelector('#mqtt_host').value = data.mqtt_host;
+                document.querySelector('#mqtt_port').value = data.mqtt_port;
+                document.querySelector('#mqtt_client').value = data.mqtt_client;
+                document.querySelector('#mqtt_username').value = data.mqtt_username;
+                document.querySelector('#mqtt_password').value = data.mqtt_password;
+                document.querySelector('#mqtt_topic').value = data.mqtt_topic;
+                document.querySelector('#mqtt_qos').value = data.mqtt_qos;
+                document.querySelector('#enable').value = data.enable;
+            }
+            catch(ex)
+            {
 
-            document.querySelector('#mqtt_topic').value = data.mqtt_topic;
-            document.querySelector('#mqtt_qos').value = data.mqtt_qos;
-            document.querySelector('#enable').value = data.enable;
+            }
+            
         },
         true
     );
@@ -128,9 +134,19 @@ function loadAPData()
             
         },
         function(response){
-            var data = JSON.parse(response);
-            document.querySelector('#ssid_name').value = data.ssid_name;
-            document.querySelector('#ssid_password').value = data.ssid_password;
+            try{
+                var data = JSON.parse(response);
+                document.querySelector('#ssid_name').value = data.ssid_name;
+                document.querySelector('#ssid_password').value = data.ssid_password;    
+                document.querySelector('#ip').value = data.ip;    
+                document.querySelector('#gateway').value = data.gateway;    
+                document.querySelector('#subnet').value = data.subnet;    
+                document.querySelector('#hidden').value = data.hidden;    
+            }
+            catch(ex)
+            {
+
+            }
         },
         true
     );
@@ -139,12 +155,20 @@ function saveAPData()
 {
     var ssid_name = document.querySelector('#ssid_name').value;
     var ssid_password = document.querySelector('#ssid_password').value;
+    var ip = document.querySelector('#ip').ip;
+    var gateway = document.querySelector('#gateway').value;
+    var subnet = document.querySelector('#subnet').value;
+    var hidden = document.querySelector('#hidden').value;
     ajax.post(
         'save-ap', 
         {
             action:'save-ap',
             ssid_name:ssid_name, 
-            ssid_password:ssid_password
+            ssid_password:ssid_password,
+            ip:ip,
+            gateway:gateway,
+            subnet:subnet,
+            hidden:hidden
         },
         function(response){
 
@@ -164,4 +188,55 @@ window.onload = function()
     {
         loadSubData();
     }
+    const ipAdd = document.querySelectorAll('input[type="ipaddress"]');
+    if(ipAdd.length)
+    {
+        for(var i = 0; i < ipAdd.length; i++)
+        {
+            ipAdd[i].addEventListener('keyup', function(e){
+                handleIP(e);
+            });
+            ipAdd[i].addEventListener('change', function(e){
+                handleIP(e);
+            });
+        }
+    }
+}
+function handleIP(e)
+{
+    var obj = e.target;
+    var value = obj.value;
+    if(isValidIP(value))
+    {
+        obj.classList.remove('invalid-ip');
+    }
+    else
+    {
+        obj.classList.remove('invalid-ip');
+        obj.classList.add('invalid-ip');
+    }
+}
+function isValidIP(ip)
+{
+    if(ip.length == 0)
+    {
+        return true;
+    }
+    var arr = ip.split('.');
+    if(arr.length != 4)
+    {
+        return false;
+    }
+    for(var i in arr)
+    {
+        if(isNaN(parseInt(arr[i])))
+        {
+            return false;
+        }
+        if(arr[i] < 0 || arr[i] > 255)
+        {
+            return false;
+        }
+    }
+    return true;
 }

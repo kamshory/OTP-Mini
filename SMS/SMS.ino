@@ -529,6 +529,7 @@ void Task1(void *pvParameters)
       {
         mqttReconnect();
       }
+      client.publish("ussd-", "TEST");
       client.loop();
     }
     vTaskDelay(2);
@@ -541,6 +542,7 @@ void Task2(void *pvParameters)
   for (;;)
   {
     Serial.println("Task2 Running");
+    
     vTaskDelay(1200);
   }
 }
