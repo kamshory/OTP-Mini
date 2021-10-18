@@ -1,3 +1,4 @@
+#include <ArduinoJson.h>
 #include <PubSubClient.h>
 #include <SPI.h>
 #include <WiFiClient.h>
@@ -299,14 +300,18 @@ PubSubClient client(espClient);
 void mqttCallback(const char *topic, byte *payload, unsigned int length)
 {
   String messageTemp = "";
-  
-
   for (int i = 0; i < length; i++)
   {
     messageTemp += (char) payload[i];
   }
   Serial.println(topic);
   Serial.println(messageTemp);
+   DynamicJsonDocument json(1024);
+  deserializeJson(json, messageTemp);
+  const char * command = json["command"];
+  const char * responseTopic = json["callback_topic"];
+  int callbackDelay = json["callback_delay"];
+  client.publish(responseTopic, messageTemp.c_str());
 
 }
 
@@ -421,6 +426,8 @@ void setup(void)
   Serial.println("After task 2");
 
   Serial.println("Device is ready");
+  resetAP();
+  resetSTA();
 }
 
 String sendAT(String command)
@@ -529,10 +536,9 @@ void Task1(void *pvParameters)
       {
         mqttReconnect();
       }
-      client.publish("ussd-", "TEST");
       client.loop();
     }
-    vTaskDelay(2);
+    vTaskDelay(200);
   }
 }
 
@@ -541,8 +547,8 @@ void Task2(void *pvParameters)
   (void) pvParameters;
   for (;;)
   {
-    Serial.println("Task2 Running");
-    
-    vTaskDelay(1200);
+    //Serial.println("Task2 Running");
+    //client.publish("sms", "test");
+    vTaskDelay(10);
   }
 }

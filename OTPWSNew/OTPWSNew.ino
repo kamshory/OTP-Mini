@@ -1,16 +1,15 @@
-#include <PubSubClient.h>
-
+#include <WebSocketsClient.h>
 #include <ArduinoJson.h>
 #include <SPI.h>
-#include <WiFiClient.h>
 #include <EEPROM.h>
 #include <WiFi.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
 
+int onboardLED          = 2;
+
 char *ssid              = "PLANET BIRU";
 char *password          = "burungperkutut";
-
 char *ssid2             = "OTP-Mini";
 char *password2         = "OTP-Mini";
 
@@ -25,40 +24,117 @@ int offsetAPIP          = 100;  // 20
 int offsetAPGateway     = 120;  // 20
 int offsetAPSubnet      = 140;  // 20
 int offsetAPHidden      = 160;  // 2
-
 int offsetSSIDPassword1 = 200;  // 50
 int offsetSSIDPassword2 = 250;  // 50
-int offsetMQTTHost      = 300;  // 50
-int offsetMQTTPort      = 350;  // 10
-int offsetclient        = 360;  // 50
-int offsetMQTTUsername  = 410;  // 50
-int offsetMQTTPassword  = 460;  // 50
-int offsetMQTTTopic     = 510;  // 50
-int offsetMQTTQOS       = 560;  // 10
-int offsetEnable        = 570;  // 50
+int offsetWSHost        = 300;  // 50
+int offsetWSPort        = 350;  // 10
+int offsetWSPath        = 360;  // 50
+int offsetWSUsername    = 410;  // 50
+int offsetWSPassword    = 460;  // 50
+int offsetWSTopic       = 510;  // 50
+int offsetEnable        = 570;  // 2
 
-String sysEnable = "0";
+String sysEnable        = "0"; 
+
+String savedWSPath      = "";
+String savedWSUsername  = "";
+String savedWSPassword  = "";
+String savedWSTopic     = "";
+String savedWSHost      = "";
+String savedWSPort      = "";
+String savedEnable      = "";
 
 
-String savedclient = "";
-String savedMQTTUsername = "";
-String savedMQTTPassword = "";
-String savedMQTTTopic = "";
-String savedMQTTQOS = "";
-String savedMQTTHost = "";
-String savedMQTTPort = "";
-String savedEnable = "";
-int mqttQOS = 0;
+boolean connected       = false;
+
+const char * gTopic     = "";
+const char * gMessage   = "";
 
 IPAddress apLocalID(192,168,4,1);
 IPAddress apGateway(192,168,4,2);
 IPAddress apSubnet(255,255,255,0);
-
 WebServer server(80);
+WebSocketsClient webSocket;
 
-// Define two tasks for Task1 &Task2
 void Task1(void *pvParameters);
 void Task2(void *pvParameters);
+
+String urlDecode(String str)
+{
+    String encodedString="";
+    char c;
+    char code0;
+    char code1;
+    for (int i =0; i < str.length(); i++){
+        c=str.charAt(i);
+      if (c == '+'){
+        encodedString+=' ';  
+      }else if (c == '%') {
+        i++;
+        code0=str.charAt(i);
+        i++;
+        code1=str.charAt(i);
+        c = (h2int(code0) << 4) | h2int(code1);
+        encodedString+=c;
+      } else{
+        
+        encodedString+=c;  
+      }
+      
+      yield();
+    }
+    
+   return encodedString;
+}
+
+String urlEncode(String str)
+{
+    String encodedString="";
+    char c;
+    char code0;
+    char code1;
+    char code2;
+    for (int i =0; i < str.length(); i++){
+      c=str.charAt(i);
+      if (c == ' '){
+        encodedString+= '+';
+      } else if (isalnum(c)){
+        encodedString+=c;
+      } else{
+        code1=(c & 0xf)+'0';
+        if ((c & 0xf) >9){
+            code1=(c & 0xf) - 10 + 'A';
+        }
+        c=(c>>4)&0xf;
+        code0=c+'0';
+        if (c > 9){
+            code0=c - 10 + 'A';
+        }
+        code2='\0';
+        encodedString+='%';
+        encodedString+=code0;
+        encodedString+=code1;
+        //encodedString+=code2;
+      }
+      yield();
+    }
+    return encodedString;
+    
+}
+
+unsigned char h2int(char c)
+{
+    if (c >= '0' && c <='9'){
+        return((unsigned char)c - '0');
+    }
+    if (c >= 'a' && c <='f'){
+        return((unsigned char)c - 'a' + 10);
+    }
+    if (c >= 'A' && c <='F'){
+        return((unsigned char)c - 'A' + 10);
+    }
+    return(0);
+}
 
 void handleRoot()
 {
@@ -76,8 +152,7 @@ void handleAP()
 
 void handleSub()
 {
-
-  String response = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Subscribtion Configuration</title><link rel=\"stylesheet\" href=\"style.css\"><script src=\"ajax.js\"></script></head><body><div class=\"all\"><h3>Subscribtion Configuration</h3><form action=\"\" method=\"post\"><div class=\"form-item\"><div class=\"form-label\">SSID</div><div class=\"form-input\"><input type=\"text\" name=\"ssid_name\" id=\"ssid_name\"></div></div><div class=\"form-item\"><div class=\"form-label\">Password</div><div class=\"form-input\"><input type=\"password\" name=\"ssid_password\" id=\"ssid_password\"></div></div><div class=\"form-item\"><div class=\"form-label\">MQTT Host</div><div class=\"form-input\"><input type=\"text\" name=\"mqtt_host\" id=\"mqtt_host\"></div></div><div class=\"form-item\"><div class=\"form-label\">MQTT Port</div><div class=\"form-input\"><input type=\"text\" name=\"mqtt_port\" id=\"mqtt_port\"></div></div><div class=\"form-item\"><div class=\"form-label\">MQTT Client ID</div><div class=\"form-input\"><input type=\"text\" name=\"mqtt_client\" id=\"mqtt_client\"></div></div><div class=\"form-item\"><div class=\"form-label\">MQTT Username</div><div class=\"form-input\"><input type=\"text\" name=\"mqtt_username\" id=\"mqtt_username\"></div></div><div class=\"form-item\"><div class=\"form-label\">MQTT Password</div><div class=\"form-input\"><input type=\"password\" name=\"mqtt_password\" id=\"mqtt_password\"></div></div><div class=\"form-item\"><div class=\"form-label\">Topic</div><div class=\"form-input\"><input type=\"text\" name=\"mqtt_topic\" id=\"mqtt_topic\"></div></div><div class=\"form-item\"><div class=\"form-label\">MQTT QoS</div><div class=\"form-input\"><input type=\"number\" name=\"mqtt_qos\" id=\"mqtt_qos\"></div></div><div class=\"form-item\"><div class=\"form-label\">Enable</div><div class=\"form-input\"><select name=\"enable\" id=\"enable\"><option value=\"0\">No</option><option value=\"1\">Yes</option></select></div></div><div class=\"form-item\"><div class=\"row\"><div class=\"column\"><input class=\"btn btn-success\" type=\"button\" name=\"save\" id=\"save\" value=\"Save\" onclick=\"return saveSubData();\"></div><div class=\"column\"><input class=\"btn btn-danger\" type=\"button\" name=\"save\" id=\"home\" value=\"Home\" onclick=\"window.location='index.html';\"></div></div></div></form></div></body></html>";
+  String response = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Subscribtion Configuration</title><link rel=\"stylesheet\" href=\"style.css\"><script src=\"ajax.js\"></script></head><body><div class=\"all\"><h3>Subscribtion Configuration</h3><form action=\"\" method=\"post\"><div class=\"form-item\"><div class=\"form-label\">SSID</div><div class=\"form-input\"><input type=\"text\" name=\"ssid_name\" id=\"ssid_name\"></div></div><div class=\"form-item\"><div class=\"form-label\">Password</div><div class=\"form-input\"><input type=\"password\" name=\"ssid_password\" id=\"ssid_password\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Host</div><div class=\"form-input\"><input type=\"text\" name=\"ws_host\" id=\"ws_host\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Port</div><div class=\"form-input\"><input type=\"text\" name=\"ws_port\" id=\"ws_port\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Path</div><div class=\"form-input\"><input type=\"text\" name=\"ws_client\" id=\"ws_client\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Username</div><div class=\"form-input\"><input type=\"text\" name=\"ws_username\" id=\"ws_username\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Password</div><div class=\"form-input\"><input type=\"password\" name=\"ws_password\" id=\"ws_password\"></div></div><div class=\"form-item\"><div class=\"form-label\">Topic</div><div class=\"form-input\"><input type=\"text\" name=\"ws_topic\" id=\"ws_topic\"></div></div><div class=\"form-item\"><div class=\"form-label\">Enable</div><div class=\"form-input\"><select name=\"enable\" id=\"enable\"><option value=\"0\">No</option><option value=\"1\">Yes</option></select></div></div><div class=\"form-item\"><div class=\"row\"><div class=\"column\"><input class=\"btn btn-success\" type=\"button\" name=\"save\" id=\"save\" value=\"Save\" onclick=\"return saveSubData();\"></div><div class=\"column\"><input class=\"btn btn-danger\" type=\"button\" name=\"save\" id=\"home\" value=\"Home\" onclick=\"window.location='index.html';\"></div></div></div></form></div></body></html>";
   server.sendHeader("Cache-Control", "public, max-age=2678400");
   server.send(200, "text/html", response);
 }
@@ -91,7 +166,7 @@ void handleStyle()
 
 void handleScript()
 {
-  String response = "var ajax={};function saveSubData(){var e=document.querySelector(\"#ssid_name\").value,t=document.querySelector(\"#ssid_password\").value,n=document.querySelector(\"#mqtt_host\").value,o=document.querySelector(\"#mqtt_port\").value,a=document.querySelector(\"#mqtt_client\").value,r=document.querySelector(\"#mqtt_username\").value,u=document.querySelector(\"#mqtt_password\").value,s=document.querySelector(\"#mqtt_topic\").value,c=document.querySelector(\"#mqtt_qos\").value,i=document.querySelector(\"#enable\").value;return ajax.post(\"save-subscribtion\",{action:\"save-subscribtion\",ssid_name:e,ssid_password:t,mqtt_host:n,mqtt_port:o,mqtt_client:a,mqtt_username:r,mqtt_password:u,mqtt_topic:s,mqtt_qos:c,enable:i},function(e){},!0),!1}function loadSubData(){ajax.get(\"subscribtion-configuration.json\",{},function(e){try{var t=JSON.parse(e);document.querySelector(\"#ssid_name\").value=t.ssid_name,document.querySelector(\"#ssid_password\").value=t.ssid_password,document.querySelector(\"#mqtt_host\").value=t.mqtt_host,document.querySelector(\"#mqtt_port\").value=t.mqtt_port,document.querySelector(\"#mqtt_client\").value=t.mqtt_client,document.querySelector(\"#mqtt_username\").value=t.mqtt_username,document.querySelector(\"#mqtt_password\").value=t.mqtt_password,document.querySelector(\"#mqtt_topic\").value=t.mqtt_topic,document.querySelector(\"#mqtt_qos\").value=t.mqtt_qos,document.querySelector(\"#enable\").value=t.enable}catch(e){}},!0)}function loadAPData(){ajax.get(\"ap-configuration.json\",{},function(e){try{var t=JSON.parse(e);document.querySelector(\"#ssid_name\").value=t.ssid_name,document.querySelector(\"#ssid_password\").value=t.ssid_password,document.querySelector(\"#ip\").value=t.ip,document.querySelector(\"#gateway\").value=t.gateway,document.querySelector(\"#subnet\").value=t.subnet,document.querySelector(\"#hidden\").value=t.hidden}catch(e){}},!0)}function saveAPData(){var e=document.querySelector(\"#ssid_name\").value,t=document.querySelector(\"#ssid_password\").value,n=document.querySelector(\"#ip\").value,o=document.querySelector(\"#gateway\").value,a=document.querySelector(\"#subnet\").value,r=document.querySelector(\"#hidden\").value;return ajax.post(\"save-ap\",{action:\"save-ap\",ssid_name:e,ssid_password:t,ip:n,gateway:o,subnet:a,hidden:r},function(e){},!0),!1}function handleIP(e){e=e.target;isValidIP(e.value)?e.classList.remove(\"invalid-ip\"):(e.classList.remove(\"invalid-ip\"),e.classList.add(\"invalid-ip\"))}function isValidIP(e){if(0==e.length)return!0;var t,n=e.split(\".\");if(4!=n.length)return!1;for(t in n){if(isNaN(parseInt(n[t])))return!1;if(n[t]<0||255<n[t])return!1}return!0}ajax.create=function(){if(\"undefined\"!=typeof XMLHttpRequest)return new XMLHttpRequest;for(var e,t=[\"MSXML2.XmlHttp.6.0\",\"MSXML2.XmlHttp.5.0\",\"MSXML2.XmlHttp.4.0\",\"MSXML2.XmlHttp.3.0\",\"MSXML2.XmlHttp.2.0\",\"Microsoft.XmlHttp\"],n=0;n<t.length;n++)try{e=new ActiveXObject(t[n]);break}catch(e){}return e},ajax.send=function(e,t,n,o,a){void 0===a&&(a=!0);var r=ajax.create();r.open(n,e,a),r.onreadystatechange=function(){4==r.readyState&&t(r.responseText)},\"POST\"==n&&r.setRequestHeader(\"Content-type\",\"application/x-www-form-urlencoded\"),r.send(o)},ajax.get=function(e,t,n,o){var a,r=[];for(a in t)t.hasOwnProperty(a)&&r.push(encodeURIComponent(a)+\"=\"+encodeURIComponent(t[a]));ajax.send(e+(r.length?\"?\"+r.join(\"&\"):\"\"),n,\"GET\",null,o)},ajax.post=function(e,t,n,o){var a,r=[];for(a in t)t.hasOwnProperty(a)&&r.push(encodeURIComponent(a)+\"=\"+encodeURIComponent(t[a]));ajax.send(e,n,\"POST\",r.join(\"&\"),o)},window.onload=function(){var e=window.location.toString();-1<e.indexOf(\"ap-configuration.html\")&&loadAPData(),-1<e.indexOf(\"subscribtion-configuration.html\")&&loadSubData();const t=document.querySelectorAll('input[type=\"ipaddress\"]');if(t.length)for(var n=0;n<t.length;n++)t[n].addEventListener(\"keyup\",function(e){handleIP(e)}),t[n].addEventListener(\"change\",function(e){handleIP(e)})};";
+  String response = "var ajax={};function saveSubData(){var e=document.querySelector(\"#ssid_name\").value,t=document.querySelector(\"#ssid_password\").value,n=document.querySelector(\"#ws_host\").value,o=document.querySelector(\"#ws_port\").value,a=document.querySelector(\"#ws_client\").value,r=document.querySelector(\"#ws_username\").value,u=document.querySelector(\"#ws_password\").value,s=document.querySelector(\"#ws_topic\").value,i=document.querySelector(\"#enable\").value;return ajax.post(\"save-subscribtion\",{action:\"save-subscribtion\",ssid_name:e,ssid_password:t,ws_host:n,ws_port:o,ws_client:a,ws_username:r,ws_password:u,ws_topic:s,enable:i},function(e){},!0),!1}function loadSubData(){ajax.get(\"subscribtion-configuration.json\",{},function(e){try{var t=JSON.parse(e);document.querySelector(\"#ssid_name\").value=t.ssid_name,document.querySelector(\"#ssid_password\").value=t.ssid_password,document.querySelector(\"#ws_host\").value=t.ws_host,document.querySelector(\"#ws_port\").value=t.ws_port,document.querySelector(\"#ws_client\").value=t.ws_client,document.querySelector(\"#ws_username\").value=t.ws_username,document.querySelector(\"#ws_password\").value=t.ws_password,document.querySelector(\"#ws_topic\").value=t.ws_topic,document.querySelector(\"#enable\").value=t.enable}catch(e){}},!0)}function loadAPData(){ajax.get(\"ap-configuration.json\",{},function(e){try{var t=JSON.parse(e);document.querySelector(\"#ssid_name\").value=t.ssid_name,document.querySelector(\"#ssid_password\").value=t.ssid_password,document.querySelector(\"#ip\").value=t.ip,document.querySelector(\"#gateway\").value=t.gateway,document.querySelector(\"#subnet\").value=t.subnet,document.querySelector(\"#hidden\").value=t.hidden}catch(e){}},!0)}function saveAPData(){var e=document.querySelector(\"#ssid_name\").value,t=document.querySelector(\"#ssid_password\").value,n=document.querySelector(\"#ip\").value,o=document.querySelector(\"#gateway\").value,a=document.querySelector(\"#subnet\").value,r=document.querySelector(\"#hidden\").value;return ajax.post(\"save-ap\",{action:\"save-ap\",ssid_name:e,ssid_password:t,ip:n,gateway:o,subnet:a,hidden:r},function(e){},!0),!1}function handleIP(e){e=e.target;isValidIP(e.value)?e.classList.remove(\"invalid-ip\"):(e.classList.remove(\"invalid-ip\"),e.classList.add(\"invalid-ip\"))}function isValidIP(e){if(0==e.length)return!0;var t,n=e.split(\".\");if(4!=n.length)return!1;for(t in n){if(isNaN(parseInt(n[t])))return!1;if(n[t]<0||255<n[t])return!1}return!0}ajax.create=function(){if(\"undefined\"!=typeof XMLHttpRequest)return new XMLHttpRequest;for(var e,t=[\"MSXML2.XmlHttp.6.0\",\"MSXML2.XmlHttp.5.0\",\"MSXML2.XmlHttp.4.0\",\"MSXML2.XmlHttp.3.0\",\"MSXML2.XmlHttp.2.0\",\"Microsoft.XmlHttp\"],n=0;n<t.length;n++)try{e=new ActiveXObject(t[n]);break}catch(e){}return e},ajax.send=function(e,t,n,o,a){void 0===a&&(a=!0);var r=ajax.create();r.open(n,e,a),r.onreadystatechange=function(){4==r.readyState&&t(r.responseText)},\"POST\"==n&&r.setRequestHeader(\"Content-type\",\"application/x-www-form-urlEncoded\"),r.send(o)},ajax.get=function(e,t,n,o){var a,r=[];for(a in t)t.hasOwnProperty(a)&&r.push(encodeURIComponent(a)+\"=\"+encodeURIComponent(t[a]));ajax.send(e+(r.length?\"?\"+r.join(\"&\"):\"\"),n,\"GET\",null,o)},ajax.post=function(e,t,n,o){var a,r=[];for(a in t)t.hasOwnProperty(a)&&r.push(encodeURIComponent(a)+\"=\"+encodeURIComponent(t[a]));ajax.send(e,n,\"POST\",r.join(\"&\"),o)},window.onload=function(){var e=window.location.toString();-1<e.indexOf(\"ap-configuration.html\")&&loadAPData(),-1<e.indexOf(\"subscribtion-configuration.html\")&&loadSubData();const t=document.querySelectorAll('input[type=\"ipaddress\"]');if(t.length)for(var n=0;n<t.length;n++)t[n].addEventListener(\"keyup\",function(e){handleIP(e)}),t[n].addEventListener(\"change\",function(e){handleIP(e)})};";
   server.sendHeader("Cache-Control", "public, max-age=2678400");
   server.send(200, "text/javascript", response);
 }
@@ -100,7 +175,6 @@ void getAPData()
 {
   String savedSSID = readDataString(offsetSSID1, eepromSizeString50);
   String savedSSIDPassword = readDataString(offsetSSIDPassword1, eepromSizeString50);
-
   String savedIP = readDataString(offsetAPIP, eepromSizeString20);
   String savedGateway = readDataString(offsetAPGateway, eepromSizeString20);
   String savedSubnet = readDataString(offsetAPSubnet, eepromSizeString20);
@@ -149,7 +223,6 @@ void resetAP()
   writeData(offsetSSID1, eepromSizeString50, savedSSID);
   String savedSSIDPassword = "OTP-Mini";
   writeData(offsetSSIDPassword1, eepromSizeString50, savedSSIDPassword);
-  
   String savedIP = "";
   writeData(offsetAPIP, eepromSizeString20, savedIP);
   String savedGateway = "";
@@ -174,16 +247,13 @@ void getSubData()
   String response = "";
   String savedSSID = readDataString(offsetSSID2, eepromSizeString50);
   String savedSSIDPassword = readDataString(offsetSSIDPassword2, eepromSizeString50);
-  String savedMQTTHost = readDataString(offsetMQTTHost, eepromSizeString50);
-  String savedMQTTPort = readDataString(offsetMQTTPort, eepromSizeInt);
-  String savedclient = readDataString(offsetclient, eepromSizeString50);
-  String savedMQTTUsername = readDataString(offsetMQTTUsername, eepromSizeString50);
-  String savedMQTTPassword = readDataString(offsetMQTTPassword, eepromSizeString50);
-  String savedMQTTTopic = readDataString(offsetMQTTTopic, eepromSizeString50);
-  String savedMQTTQOS = readDataString(offsetMQTTQOS, eepromSizeInt);
+  String savedWSHost = readDataString(offsetWSHost, eepromSizeString50);
+  String savedWSPort = readDataString(offsetWSPort, eepromSizeInt);
+  String savedWSPath = readDataString(offsetWSPath, eepromSizeString50);
+  String savedWSUsername = readDataString(offsetWSUsername, eepromSizeString50);
+  String savedWSPassword = readDataString(offsetWSPassword, eepromSizeString50);
+  String savedWSTopic = readDataString(offsetWSTopic, eepromSizeString50);
   String savedEnable = readDataString(offsetEnable, eepromSizeBoolean);
-
-  
 
   response += "{\"ssid_name\":\"";
   response += savedSSID;
@@ -191,26 +261,23 @@ void getSubData()
   response += "\", \"ssid_password\":\"";
   response += savedSSIDPassword;
 
-  response += "\", \"mqtt_host\":\"";
-  response += savedMQTTHost;
+  response += "\", \"ws_host\":\"";
+  response += savedWSHost;
 
-  response += "\", \"mqtt_port\":\"";
-  response += savedMQTTPort;
+  response += "\", \"ws_port\":\"";
+  response += savedWSPort;
 
-  response += "\", \"mqtt_client\":\"";
-  response += savedclient;
+  response += "\", \"ws_client\":\"";
+  response += savedWSPath;
 
-  response += "\", \"mqtt_username\":\"";
-  response += savedMQTTUsername;
+  response += "\", \"ws_username\":\"";
+  response += savedWSUsername;
 
-  response += "\", \"mqtt_password\":\"";
-  response += savedMQTTPassword;
+  response += "\", \"ws_password\":\"";
+  response += savedWSPassword;
 
-  response += "\", \"mqtt_topic\":\"";
-  response += savedMQTTTopic;
-
-  response += "\", \"mqtt_qos\":\"";
-  response += savedMQTTQOS;
+  response += "\", \"ws_topic\":\"";
+  response += savedWSTopic;
 
   response += "\", \"enable\":\"";
   response += savedEnable;
@@ -231,35 +298,31 @@ void saveSubData()
     writeData(offsetSSIDPassword2, eepromSizeString50, savedSSIDPassword);
     delay(1);
 
-     savedMQTTHost = server.arg("mqtt_host");
-    writeData(offsetMQTTHost, eepromSizeString50, savedMQTTHost);
+    savedWSHost = server.arg("ws_host");
+    writeData(offsetWSHost, eepromSizeString50, savedWSHost);
     delay(1);
 
-    String savedMQTTPort = server.arg("mqtt_port");
-    writeData(offsetMQTTPort, eepromSizeInt, savedMQTTPort);
+    String savedWSPort = server.arg("ws_port");
+    writeData(offsetWSPort, eepromSizeInt, savedWSPort);
     delay(1);
 
-    String savedclient = server.arg("mqtt_client");
-    writeData(offsetclient, eepromSizeString50, savedclient);
+    String savedWSPath = server.arg("ws_client");
+    writeData(offsetWSPath, eepromSizeString50, savedWSPath);
     delay(1);
 
-     savedMQTTUsername = server.arg("mqtt_username");
-    writeData(offsetMQTTUsername, eepromSizeString50, savedMQTTUsername);
+    savedWSUsername = server.arg("ws_username");
+    writeData(offsetWSUsername, eepromSizeString50, savedWSUsername);
     delay(1);
 
-     savedMQTTPassword = server.arg("mqtt_password");
-    writeData(offsetMQTTPassword, eepromSizeString50, savedMQTTPassword);
+    savedWSPassword = server.arg("ws_password");
+    writeData(offsetWSPassword, eepromSizeString50, savedWSPassword);
     delay(1);
 
-     savedMQTTTopic = server.arg("mqtt_topic");
-    writeData(offsetMQTTTopic, eepromSizeString50, savedMQTTTopic);
+    savedWSTopic = server.arg("ws_topic");
+    writeData(offsetWSTopic, eepromSizeString50, savedWSTopic);
     delay(1);
 
-     savedMQTTQOS = server.arg("mqtt_qos");
-    writeData(offsetMQTTQOS, eepromSizeInt, savedMQTTQOS);
-    delay(1);
-
-     savedEnable = server.arg("enable");
+    savedEnable = server.arg("enable");
     writeData(offsetEnable, eepromSizeBoolean, savedEnable);
     delay(1);
   }
@@ -315,6 +378,7 @@ String readDataString(int offset, int length)
   }
   return result;
 }
+
 void handleNotFound()
 {
   String message = "File Not Found\n\n";
@@ -332,38 +396,6 @@ void handleNotFound()
   }
   server.send(404, "text/plain", message);
 }
-
-WiFiClient espClient;
-WiFiClient espClient2;
-PubSubClient client(espClient);
-PubSubClient client2(espClient2);
-
-const char * gTopic = "";
-const char * gMessage = "";
-
-
-void mqttCallback(const char *topic, byte *payload, unsigned int length)
-{
-  String message = "";
- 
-  for (int i = 0; i < length; i++)
-  {
-    message += (char) payload[i];
-  }
-  
-  DynamicJsonDocument json(1024);
-  deserializeJson(json, message);
-  const char * command = json["command"];
-  const char * responseTopic = json["callback_topic"];
-  int callbackDelay = json["callback_delay"];
-  gTopic = responseTopic;
-  gMessage = message.c_str();
-       Serial.println(gTopic);
-      Serial.println(gMessage);
- 
-
-}
-
 
 void setup(void)
 {
@@ -452,8 +484,6 @@ void setup(void)
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
 
-    client.setCallback(mqttCallback);
-
     Serial.println("");
   }
 
@@ -463,7 +493,6 @@ void setup(void)
   }
   
 
-  Serial.println("Before binding path");
   server.on("/", handleRoot);
   server.on("/index.html", handleRoot);
   server.on("/ap-configuration.html", handleAP);
@@ -482,105 +511,168 @@ void setup(void)
   server.onNotFound(handleNotFound);
   server.begin();
 
-  getMQTTConfig();
+  getWSConfig();
   
   // Now set up two tasks to run independently.
-  xTaskCreate(    Task1, "Task1"  // A name just for humans
-  , 32768 // This stack size can be checked &adjusted by reading the Stack Highwater
-  , NULL, 1 // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+  xTaskCreate(    
+    Task1
+  , "Task1"  // A name just for humans
+  , 32768    // This stack size can be checked &adjusted by reading the Stack Highwater
+  , NULL
+  , 1        // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
   , NULL);
 
-  xTaskCreate(    Task2, "Task2"  // A name just for humans
-  , 10240 // This stack size can be checked &adjusted by reading the Stack Highwater
-  , NULL, 1 // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+  xTaskCreate(    
+    Task2
+  , "Task2"  // A name just for humans
+  , 10240    // This stack size can be checked &adjusted by reading the Stack Highwater
+  , NULL
+  , 1        // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
   , NULL);
   
+  pinMode(onboardLED, OUTPUT);
+  
+  
+  //resetAP();
+  //resetSTA();
+
+  wsReconnect();
   Serial.println("Device is ready");
-
-  
-  
-  resetAP();
 }
 
 void loop(void)
 {
-  // HTTP Client must be handled on main loop
+  // HTTP Client must be handled by main loop
   server.handleClient();
   delay(2);
 }
 
-
-
-void getMQTTConfig()
+void getWSConfig()
 {
-  savedclient = readDataString(offsetclient, eepromSizeString50);
-  savedMQTTUsername = readDataString(offsetMQTTUsername, eepromSizeString50);
-  savedMQTTPassword = readDataString(offsetMQTTPassword, eepromSizeString50);
-  savedMQTTTopic = readDataString(offsetMQTTTopic, eepromSizeString50);
-  savedMQTTQOS = readDataString(offsetMQTTQOS, eepromSizeString50);
-  savedMQTTHost = readDataString(offsetMQTTHost, eepromSizeString50);
-  savedMQTTPort = readDataString(offsetMQTTPort, eepromSizeInt);
-
-  if (savedMQTTQOS == "")
-  {
-    savedMQTTQOS = "0";
-  }
-  mqttQOS = savedMQTTQOS.toInt();
+  savedWSPath = readDataString(offsetWSPath, eepromSizeString50);
+  savedWSUsername = readDataString(offsetWSUsername, eepromSizeString50);
+  savedWSPassword = readDataString(offsetWSPassword, eepromSizeString50);
+  savedWSTopic = readDataString(offsetWSTopic, eepromSizeString50);
+  savedWSHost = readDataString(offsetWSHost, eepromSizeString50);
+  savedWSPort = readDataString(offsetWSPort, eepromSizeInt);
 }
 
-void publishMessage(const char * topic, const char * message)
+void hexdump(const void *mem, uint32_t len, uint8_t cols = 16)
 {
-  client2.setServer(savedMQTTHost.c_str(), savedMQTTPort.toInt());
-
-  // Loop until we're reconnected
-  while (!client2.connected())
+  const uint8_t *src = (const uint8_t *) mem;
+  Serial.printf("\n[HEXDUMP] Address: 0x%08X len: 0x%X (%d)", (ptrdiff_t) src, len, len);
+  for (uint32_t i = 0; i < len; i++)
   {
-    // Attempt to connect
-    if (client2.connect(savedclient.c_str(), savedMQTTUsername.c_str(), savedMQTTPassword.c_str()))
+    if (i % cols == 0)
+    {
+      Serial.printf("\n[0x%08X] 0x%08X: ", (ptrdiff_t) src, i);
+    }
+    Serial.printf("%02X ", *src);
+    src++;
+  }
+  Serial.printf("\n");
+}
+
+void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
+{
+  switch (type)
+  {
+    case WStype_DISCONNECTED:
+      connected = false;
+      break;
+    case WStype_CONNECTED:
+      {
+        connected = true;
+      }
+      break;
+    case WStype_TEXT:
+      handleMessage(payload, length);
+
+      break;
+    case WStype_BIN:
+      hexdump(payload, length);
+      break;
+    case WStype_PING:
+      // pong will be send automatically
+      break;
+    case WStype_PONG:
+      // answer to a ping we send
+      break;
+    case WStype_ERROR:
+    case WStype_FRAGMENT_TEXT_START:
+    case WStype_FRAGMENT_BIN_START:
+    case WStype_FRAGMENT:
+    case WStype_FRAGMENT_FIN:
+      break;
+  }
+}
+
+void handleMessage(uint8_t *payload, size_t length)
+{
+  String request = "";
+  String response = "";
+  int i = 0;
+  for (i = 0; i < length; i++)
+  {
+    request += (char) payload[i];
+  }
+  DynamicJsonDocument json(1024);
+  deserializeJson(json, request);
+  const char *command = json["command"];
+  const char *responseTopic = json["callback_topic"];
+  boolean requireResponse = !(responseTopic == NULL);
+  
+
+  // Define your program here...
+  if(requireResponse)
+  {
+    response = request;
+
+    int callbackDelay = json["callback_delay"];
+    sendResponse(responseTopic, response, callbackDelay);
+  }  
+}
+
+void sendResponse(const char * responseTopic, String response, int callbackDelay)
+{
+  String path = savedWSPath;
+  path += "?topic=";
+  path += urlEncode(String(responseTopic));
+
+  WebSocketsClient webSocket2;
+  webSocket2.begin(savedWSHost.c_str(), savedWSPort.toInt(), path.c_str());
+  webSocket2.setAuthorization(savedWSUsername.c_str(), savedWSPassword.c_str());
+
+  int i;
+  long lastUpdate = millis();
+
+  while(lastUpdate + callbackDelay >= millis() || WiFi.status() != WL_CONNECTED)
+  {
+    webSocket2.loop();
+    if(webSocket2.sendPing())
     {
       break;
     }
-    else
-    {
-      Serial.print("failed, rc=");
-      Serial.print(client2.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(1000);
-    }
+    delay(7);
   }
-  delay(10);
-  client2.publish(topic, message);
-  Serial.println("Published...");
-  Serial.println(topic);
-  Serial.println(message);
-}
-
-void mqttReconnect()
-{
-  client.setServer(savedMQTTHost.c_str(), savedMQTTPort.toInt());
-
-  // Loop until we're reconnected
-  
-  while (!client.connected())
+  i = 0;
+  while(!webSocket2.sendTXT(response) && i < 10)
   {
-    // Attempt to connect
-    Serial.println("Reonnecting client...");
-    if (client.connect(savedclient.c_str(), savedMQTTUsername.c_str(), savedMQTTPassword.c_str()))
-    {
-      boolean sub = client.subscribe(savedMQTTTopic.c_str(), mqttQOS);
-    }
-    else
-    {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 0.5 seconds before retrying
-      delay(500);
-    }
+    webSocket2.loop();
+    delay(10);
+    i++;
   }
 }
-
+void wsReconnect()
+{
+  String path = savedWSPath;
+  path += "?topic=";
+  path += urlEncode(String(savedWSTopic));
+  webSocket.begin(savedWSHost.c_str(), savedWSPort.toInt(), path.c_str());
+  webSocket.setAuthorization(savedWSUsername.c_str(), savedWSPassword.c_str());
+  webSocket.onEvent(webSocketEvent);
+}
+boolean lastState = false;
 void Task1(void *pvParameters)
 {
   (void) pvParameters;
@@ -588,15 +680,24 @@ void Task1(void *pvParameters)
   {
     if (sysEnable == "1")
     {
-      if (!client.connected())
+      webSocket.loop();
+      if(lastState != connected)
       {
-        mqttReconnect();
+        if(connected)
+        {
+          digitalWrite(onboardLED, HIGH);
+        }
+        else
+        {
+          digitalWrite(onboardLED, LOW);
+        }
+        lastState = connected;
       }
-      client.loop();
     }
-    vTaskDelay(1000);
+    vTaskDelay(2);
   }
 }
+
 
 void Task2(void *pvParameters)
 {
@@ -605,12 +706,9 @@ void Task2(void *pvParameters)
   {
     if(std::string(gTopic) != "" && std::string(gMessage) != "")
     {
-      publishMessage(gTopic, gMessage);
-      
-      
       gTopic = "";
       gMessage = "";
     }
-    vTaskDelay(10);
+    vTaskDelay(10000);
   }
 }
