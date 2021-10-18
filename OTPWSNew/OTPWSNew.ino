@@ -673,6 +673,9 @@ void wsReconnect()
   webSocket.onEvent(webSocketEvent);
 }
 boolean lastState = false;
+long lastDisconnected = millis();
+long reconnectWiFiTreshold = 10000;
+
 void Task1(void *pvParameters)
 {
   (void) pvParameters;
@@ -690,6 +693,7 @@ void Task1(void *pvParameters)
         else
         {
           digitalWrite(onboardLED, LOW);
+          lastDisconnected = millis();
         }
         lastState = connected;
       }
@@ -698,17 +702,24 @@ void Task1(void *pvParameters)
   }
 }
 
-
 void Task2(void *pvParameters)
 {
   (void) pvParameters;
   for (;;)
   {
-    if(std::string(gTopic) != "" && std::string(gMessage) != "")
+    if(!connected)
     {
-      gTopic = "";
-      gMessage = "";
+      if(millis() - lastDisconnected > reconnectWiFiTreshold && WiFi.status() != WL_CONNECTED)
+      {
+        Serial.println("Reconnecting to WiFi...");
+        WiFi.disconnect();
+        boolean res = WiFi.reconnect();
+        if(res)
+        {
+          lastDisconnected = millis();
+        }
+      }
     }
-    vTaskDelay(10000);
+    vTaskDelay(2000);
   }
 }
