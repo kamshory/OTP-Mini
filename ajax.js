@@ -154,7 +154,7 @@ function saveAPData()
 {
     var ssid_name = document.querySelector('#ssid_name').value;
     var ssid_password = document.querySelector('#ssid_password').value;
-    var ip = document.querySelector('#ip').ip;
+    var ip = document.querySelector('#ip').value;
     var gateway = document.querySelector('#gateway').value;
     var subnet = document.querySelector('#subnet').value;
     var hidden = document.querySelector('#hidden').value;
