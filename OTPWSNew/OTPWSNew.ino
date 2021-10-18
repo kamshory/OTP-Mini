@@ -45,10 +45,11 @@ String sysEnable           = "0";
 boolean connected          = false;
 boolean lastState          = false;
 long lastDisconnected      = millis();
-long reconnectWiFiTreshold = 10000;
+long reconnectWiFiTreshold = 5000;
 
 const char * gTopic        = "";
 const char * gMessage      = "";
+String ssidUsed            = "";
 
 IPAddress apLocalID(192,168,4,1);
 IPAddress apGateway(192,168,4,2);
@@ -452,6 +453,7 @@ void setup(void)
   
 
   Serial.println("");
+  
 
   if (sysEnable == "1")
   {
@@ -462,10 +464,12 @@ void setup(void)
     const char *passwordSta = passwordStaS.c_str();
     if (ssidStaS.length() > 0)
     {
+      ssidUsed = ssidSta;
       WiFi.begin(ssidSta, passwordSta);
     }
     else
     {
+      ssidUsed = ssid;
       WiFi.begin(ssid, password);
     }
 
@@ -484,7 +488,7 @@ void setup(void)
     }
     Serial.println("");
     Serial.print("Connected to ");
-    Serial.println(ssid);
+    Serial.println(ssidUsed);
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
 
@@ -704,6 +708,22 @@ void Task2(void *pvParameters)
         boolean res = WiFi.reconnect();
         if(res)
         {
+          int j = 0;
+          while(WiFi.status() != WL_CONNECTED && j < 10)
+          {
+            delay(500);
+            j++;
+          }
+          if(j < 10)
+          {
+            Serial.println("");
+            Serial.print("Connected to ");
+            Serial.println(ssidUsed);
+            Serial.print("IP address: ");
+            Serial.println(WiFi.localIP());    
+            Serial.println("");
+          }
+          
           lastDisconnected = millis();
         }
       }
