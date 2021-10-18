@@ -6,49 +6,50 @@
 #include <WebServer.h>
 #include <ESPmDNS.h>
 
-int onboardLED          = 2;
+int onboardLED             = 2;
 
-char *ssid              = "PLANET BIRU";
-char *password          = "burungperkutut";
-char *ssid2             = "OTP-Mini";
-char *password2         = "OTP-Mini";
+char *ssid                 = "PLANET BIRU";
+char *password             = "burungperkutut";
+char *ssid2                = "OTP-Mini";
+char *password2            = "OTP-Mini";
 
-int eepromSizeString50  = 50;
-int eepromSizeString20  = 20;
-int eepromSizeInt       = 10;
-int eepromSizeBoolean   = 2;
+int eepromSizeString50     = 50;
+int eepromSizeString20     = 20;
+int eepromSizeInt          = 10;
+int eepromSizeBoolean      = 2;
 
-int offsetSSID1         = 0;    // 50
-int offsetSSID2         = 50;   // 50
-int offsetAPIP          = 100;  // 20
-int offsetAPGateway     = 120;  // 20
-int offsetAPSubnet      = 140;  // 20
-int offsetAPHidden      = 160;  // 2
-int offsetSSIDPassword1 = 200;  // 50
-int offsetSSIDPassword2 = 250;  // 50
-int offsetWSHost        = 300;  // 50
-int offsetWSPort        = 350;  // 10
-int offsetWSPath        = 360;  // 50
-int offsetWSUsername    = 410;  // 50
-int offsetWSPassword    = 460;  // 50
-int offsetWSTopic       = 510;  // 50
-int offsetEnable        = 570;  // 2
+int offsetSSID1            = 0;    // 50
+int offsetSSID2            = 50;   // 50
+int offsetAPIP             = 100;  // 20
+int offsetAPGateway        = 120;  // 20
+int offsetAPSubnet         = 140;  // 20
+int offsetAPHidden         = 160;  // 2
+int offsetSSIDPassword1    = 200;  // 50
+int offsetSSIDPassword2    = 250;  // 50
+int offsetWSHost           = 300;  // 50
+int offsetWSPort           = 350;  // 10
+int offsetWSPath           = 360;  // 50
+int offsetWSUsername       = 410;  // 50
+int offsetWSPassword       = 460;  // 50
+int offsetWSTopic          = 510;  // 50
+int offsetEnable           = 570;  // 2
 
-String sysEnable        = "0"; 
+String savedWSPath         = "";
+String savedWSUsername     = "";
+String savedWSPassword     = "";
+String savedWSTopic        = "";
+String savedWSHost         = "";
+String savedWSPort         = "";
+String savedEnable         = "";
 
-String savedWSPath      = "";
-String savedWSUsername  = "";
-String savedWSPassword  = "";
-String savedWSTopic     = "";
-String savedWSHost      = "";
-String savedWSPort      = "";
-String savedEnable      = "";
+String sysEnable           = "0"; 
+boolean connected          = false;
+boolean lastState          = false;
+long lastDisconnected      = millis();
+long reconnectWiFiTreshold = 10000;
 
-
-boolean connected       = false;
-
-const char * gTopic     = "";
-const char * gMessage   = "";
+const char * gTopic        = "";
+const char * gMessage      = "";
 
 IPAddress apLocalID(192,168,4,1);
 IPAddress apGateway(192,168,4,2);
@@ -622,7 +623,6 @@ void handleMessage(uint8_t *payload, size_t length)
   const char *responseTopic = json["callback_topic"];
   boolean requireResponse = !(responseTopic == NULL);
   
-
   // Define your program here...
   if(requireResponse)
   {
@@ -672,9 +672,7 @@ void wsReconnect()
   webSocket.setAuthorization(savedWSUsername.c_str(), savedWSPassword.c_str());
   webSocket.onEvent(webSocketEvent);
 }
-boolean lastState = false;
-long lastDisconnected = millis();
-long reconnectWiFiTreshold = 10000;
+
 
 void Task1(void *pvParameters)
 {
