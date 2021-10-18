@@ -213,12 +213,7 @@ void saveAPData()
     writeData(offsetAPSubnet, eepromSizeString20, savedSubnet);
     String savedHidden = server.arg("hidden");
     writeData(offsetAPHidden, eepromSizeBoolean, savedHidden);  
-    Serial.println(savedSSID);
-    Serial.println(savedSSIDPassword);
-    Serial.println(offsetAPIP);
-    Serial.println(savedGateway);
-    Serial.println(savedSubnet);
-    Serial.println(savedHidden);
+
   }
   String message = "{\"status\":\"OK\"}";
   server.send(200, "application/json", message);
@@ -250,7 +245,6 @@ void resetSTA()
 
 void getSubData()
 {
-
   String response = "";
   String savedSSID = readDataString(offsetSSID2, eepromSizeString50);
   String savedSSIDPassword = readDataString(offsetSSIDPassword2, eepromSizeString50);
@@ -305,7 +299,7 @@ void saveSubData()
     writeData(offsetSSIDPassword2, eepromSizeString50, savedSSIDPassword);
     delay(1);
 
-    savedWSHost = server.arg("ws_host");
+    String savedWSHost = server.arg("ws_host");
     writeData(offsetWSHost, eepromSizeString50, savedWSHost);
     delay(1);
 
@@ -317,19 +311,19 @@ void saveSubData()
     writeData(offsetWSPath, eepromSizeString50, savedWSPath);
     delay(1);
 
-    savedWSUsername = server.arg("ws_username");
+    String savedWSUsername = server.arg("ws_username");
     writeData(offsetWSUsername, eepromSizeString50, savedWSUsername);
     delay(1);
 
-    savedWSPassword = server.arg("ws_password");
+    String savedWSPassword = server.arg("ws_password");
     writeData(offsetWSPassword, eepromSizeString50, savedWSPassword);
     delay(1);
 
-    savedWSTopic = server.arg("ws_topic");
+    String savedWSTopic = server.arg("ws_topic");
     writeData(offsetWSTopic, eepromSizeString50, savedWSTopic);
     delay(1);
 
-    savedEnable = server.arg("enable");
+    String savedEnable = server.arg("enable");
     writeData(offsetEnable, eepromSizeBoolean, savedEnable);
     delay(1);
   }
