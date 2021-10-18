@@ -66,13 +66,13 @@ function saveSubData()
 {
     var ssid_name = document.querySelector('#ssid_name').value;
     var ssid_password = document.querySelector('#ssid_password').value;
-    var mqtt_host = document.querySelector('#mqtt_host').value;
-    var mqtt_port = document.querySelector('#mqtt_port').value;
-    var mqtt_client = document.querySelector('#mqtt_client').value;
-    var mqtt_username = document.querySelector('#mqtt_username').value;
-    var mqtt_password = document.querySelector('#mqtt_password').value;
-    var mqtt_topic = document.querySelector('#mqtt_topic').value;
-    var mqtt_qos = document.querySelector('#mqtt_qos').value;
+    var ws_host = document.querySelector('#ws_host').value;
+    var ws_port = document.querySelector('#ws_port').value;
+    var ws_client = document.querySelector('#ws_client').value;
+    var ws_username = document.querySelector('#ws_username').value;
+    var ws_password = document.querySelector('#ws_password').value;
+    var ws_topic = document.querySelector('#ws_topic').value;
+    var ws_qos = document.querySelector('#ws_qos').value;
     var enable = document.querySelector('#enable').value;
     ajax.post(
         'save-subscribtion', 
@@ -80,13 +80,13 @@ function saveSubData()
             action:'save-subscribtion',
             ssid_name:ssid_name, 
             ssid_password:ssid_password, 
-            mqtt_host:mqtt_host, 
-            mqtt_port:mqtt_port, 
-            mqtt_client:mqtt_client, 
-            mqtt_username:mqtt_username, 
-            mqtt_password:mqtt_password,
-            mqtt_topic:mqtt_topic,
-            mqtt_qos:mqtt_qos,
+            ws_host:ws_host, 
+            ws_port:ws_port, 
+            ws_client:ws_client, 
+            ws_username:ws_username, 
+            ws_password:ws_password,
+            ws_topic:ws_topic,
+            ws_qos:ws_qos,
             enable:enable
         },
         function(response){
@@ -108,13 +108,12 @@ function loadSubData()
                 var data = JSON.parse(response);
                 document.querySelector('#ssid_name').value = data.ssid_name;
                 document.querySelector('#ssid_password').value = data.ssid_password;
-                document.querySelector('#mqtt_host').value = data.mqtt_host;
-                document.querySelector('#mqtt_port').value = data.mqtt_port;
-                document.querySelector('#mqtt_client').value = data.mqtt_client;
-                document.querySelector('#mqtt_username').value = data.mqtt_username;
-                document.querySelector('#mqtt_password').value = data.mqtt_password;
-                document.querySelector('#mqtt_topic').value = data.mqtt_topic;
-                document.querySelector('#mqtt_qos').value = data.mqtt_qos;
+                document.querySelector('#ws_host').value = data.ws_host;
+                document.querySelector('#ws_port').value = data.ws_port;
+                document.querySelector('#ws_client').value = data.ws_client;
+                document.querySelector('#ws_username').value = data.ws_username;
+                document.querySelector('#ws_password').value = data.ws_password;
+                document.querySelector('#ws_topic').value = data.ws_topic;
                 document.querySelector('#enable').value = data.enable;
             }
             catch(ex)
