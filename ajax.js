@@ -68,11 +68,10 @@ function saveSubData()
     var ssid_password = document.querySelector('#ssid_password').value;
     var ws_host = document.querySelector('#ws_host').value;
     var ws_port = document.querySelector('#ws_port').value;
-    var ws_client = document.querySelector('#ws_client').value;
+    var ws_path = document.querySelector('#ws_path').value;
     var ws_username = document.querySelector('#ws_username').value;
     var ws_password = document.querySelector('#ws_password').value;
     var ws_topic = document.querySelector('#ws_topic').value;
-    var ws_qos = document.querySelector('#ws_qos').value;
     var enable = document.querySelector('#enable').value;
     ajax.post(
         'save-subscribtion', 
@@ -82,11 +81,10 @@ function saveSubData()
             ssid_password:ssid_password, 
             ws_host:ws_host, 
             ws_port:ws_port, 
-            ws_client:ws_client, 
+            ws_path:ws_path, 
             ws_username:ws_username, 
             ws_password:ws_password,
             ws_topic:ws_topic,
-            ws_qos:ws_qos,
             enable:enable
         },
         function(response){
@@ -110,7 +108,7 @@ function loadSubData()
                 document.querySelector('#ssid_password').value = data.ssid_password;
                 document.querySelector('#ws_host').value = data.ws_host;
                 document.querySelector('#ws_port').value = data.ws_port;
-                document.querySelector('#ws_client').value = data.ws_client;
+                document.querySelector('#ws_path').value = data.ws_path;
                 document.querySelector('#ws_username').value = data.ws_username;
                 document.querySelector('#ws_password').value = data.ws_password;
                 document.querySelector('#ws_topic').value = data.ws_topic;

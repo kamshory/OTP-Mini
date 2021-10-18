@@ -7,7 +7,6 @@
 #include <ESPmDNS.h>
 
 int onboardLED             = 2;
-
 char *ssid                 = "PLANET BIRU";
 char *password             = "burungperkutut";
 char *ssid2                = "OTP-Mini";
@@ -153,7 +152,7 @@ void handleAP()
 
 void handleSub()
 {
-  String response = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Subscribtion Configuration</title><link rel=\"stylesheet\" href=\"style.css\"><script src=\"ajax.js\"></script></head><body><div class=\"all\"><h3>Subscribtion Configuration</h3><form action=\"\" method=\"post\"><div class=\"form-item\"><div class=\"form-label\">SSID</div><div class=\"form-input\"><input type=\"text\" name=\"ssid_name\" id=\"ssid_name\"></div></div><div class=\"form-item\"><div class=\"form-label\">Password</div><div class=\"form-input\"><input type=\"password\" name=\"ssid_password\" id=\"ssid_password\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Host</div><div class=\"form-input\"><input type=\"text\" name=\"ws_host\" id=\"ws_host\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Port</div><div class=\"form-input\"><input type=\"text\" name=\"ws_port\" id=\"ws_port\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Path</div><div class=\"form-input\"><input type=\"text\" name=\"ws_client\" id=\"ws_client\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Username</div><div class=\"form-input\"><input type=\"text\" name=\"ws_username\" id=\"ws_username\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Password</div><div class=\"form-input\"><input type=\"password\" name=\"ws_password\" id=\"ws_password\"></div></div><div class=\"form-item\"><div class=\"form-label\">Topic</div><div class=\"form-input\"><input type=\"text\" name=\"ws_topic\" id=\"ws_topic\"></div></div><div class=\"form-item\"><div class=\"form-label\">Enable</div><div class=\"form-input\"><select name=\"enable\" id=\"enable\"><option value=\"0\">No</option><option value=\"1\">Yes</option></select></div></div><div class=\"form-item\"><div class=\"row\"><div class=\"column\"><input class=\"btn btn-success\" type=\"button\" name=\"save\" id=\"save\" value=\"Save\" onclick=\"return saveSubData();\"></div><div class=\"column\"><input class=\"btn btn-danger\" type=\"button\" name=\"save\" id=\"home\" value=\"Home\" onclick=\"window.location='index.html';\"></div></div></div></form></div></body></html>";
+  String response = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Subscribtion Configuration</title><link rel=\"stylesheet\" href=\"style.css\"><script src=\"ajax.js\"></script></head><body><div class=\"all\"><h3>Subscribtion Configuration</h3><form action=\"\" method=\"post\"><div class=\"form-item\"><div class=\"form-label\">SSID</div><div class=\"form-input\"><input type=\"text\" name=\"ssid_name\" id=\"ssid_name\"></div></div><div class=\"form-item\"><div class=\"form-label\">Password</div><div class=\"form-input\"><input type=\"password\" name=\"ssid_password\" id=\"ssid_password\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Host</div><div class=\"form-input\"><input type=\"text\" name=\"ws_host\" id=\"ws_host\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Port</div><div class=\"form-input\"><input type=\"text\" name=\"ws_port\" id=\"ws_port\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Path</div><div class=\"form-input\"><input type=\"text\" name=\"ws_path\" id=\"ws_path\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Username</div><div class=\"form-input\"><input type=\"text\" name=\"ws_username\" id=\"ws_username\"></div></div><div class=\"form-item\"><div class=\"form-label\">WS Password</div><div class=\"form-input\"><input type=\"password\" name=\"ws_password\" id=\"ws_password\"></div></div><div class=\"form-item\"><div class=\"form-label\">Topic</div><div class=\"form-input\"><input type=\"text\" name=\"ws_topic\" id=\"ws_topic\"></div></div><div class=\"form-item\"><div class=\"form-label\">Enable</div><div class=\"form-input\"><select name=\"enable\" id=\"enable\"><option value=\"0\">No</option><option value=\"1\">Yes</option></select></div></div><div class=\"form-item\"><div class=\"row\"><div class=\"column\"><input class=\"btn btn-success\" type=\"button\" name=\"save\" id=\"save\" value=\"Save\" onclick=\"return saveSubData();\"></div><div class=\"column\"><input class=\"btn btn-danger\" type=\"button\" name=\"save\" id=\"home\" value=\"Home\" onclick=\"window.location='index.html';\"></div></div></div></form></div></body></html>";
   server.sendHeader("Cache-Control", "public, max-age=2678400");
   server.send(200, "text/html", response);
 }
@@ -167,7 +166,7 @@ void handleStyle()
 
 void handleScript()
 {
-  String response = "var ajax={};function saveSubData(){var e=document.querySelector(\"#ssid_name\").value,t=document.querySelector(\"#ssid_password\").value,n=document.querySelector(\"#ws_host\").value,a=document.querySelector(\"#ws_port\").value,o=document.querySelector(\"#ws_client\").value,r=document.querySelector(\"#ws_username\").value,s=document.querySelector(\"#ws_password\").value,u=document.querySelector(\"#ws_topic\").value,c=document.querySelector(\"#ws_qos\").value,i=document.querySelector(\"#enable\").value;return ajax.post(\"save-subscribtion\",{action:\"save-subscribtion\",ssid_name:e,ssid_password:t,ws_host:n,ws_port:a,ws_client:o,ws_username:r,ws_password:s,ws_topic:u,ws_qos:c,enable:i},function(e){},!0),!1}function loadSubData(){ajax.get(\"subscribtion-configuration.json\",{},function(e){try{var t=JSON.parse(e);document.querySelector(\"#ssid_name\").value=t.ssid_name,document.querySelector(\"#ssid_password\").value=t.ssid_password,document.querySelector(\"#ws_host\").value=t.ws_host,document.querySelector(\"#ws_port\").value=t.ws_port,document.querySelector(\"#ws_client\").value=t.ws_client,document.querySelector(\"#ws_username\").value=t.ws_username,document.querySelector(\"#ws_password\").value=t.ws_password,document.querySelector(\"#ws_topic\").value=t.ws_topic,document.querySelector(\"#enable\").value=t.enable}catch(e){}},!0)}function loadAPData(){ajax.get(\"ap-configuration.json\",{},function(e){try{var t=JSON.parse(e);document.querySelector(\"#ssid_name\").value=t.ssid_name,document.querySelector(\"#ssid_password\").value=t.ssid_password,document.querySelector(\"#ip\").value=t.ip,document.querySelector(\"#gateway\").value=t.gateway,document.querySelector(\"#subnet\").value=t.subnet,document.querySelector(\"#hidden\").value=t.hidden}catch(e){}},!0)}function saveAPData(){var e=document.querySelector(\"#ssid_name\").value,t=document.querySelector(\"#ssid_password\").value,n=document.querySelector(\"#ip\").value,a=document.querySelector(\"#gateway\").value,o=document.querySelector(\"#subnet\").value,r=document.querySelector(\"#hidden\").value;return ajax.post(\"save-ap\",{action:\"save-ap\",ssid_name:e,ssid_password:t,ip:n,gateway:a,subnet:o,hidden:r},function(e){},!0),!1}function handleIP(e){e=e.target;isValidIP(e.value)?e.classList.remove(\"invalid-ip\"):(e.classList.remove(\"invalid-ip\"),e.classList.add(\"invalid-ip\"))}function isValidIP(e){if(0==e.length)return!0;var t,n=e.split(\".\");if(4!=n.length)return!1;for(t in n){if(isNaN(parseInt(n[t])))return!1;if(n[t]<0||255<n[t])return!1}return!0}ajax.create=function(){if(\"undefined\"!=typeof XMLHttpRequest)return new XMLHttpRequest;for(var e,t=[\"MSXML2.XmlHttp.6.0\",\"MSXML2.XmlHttp.5.0\",\"MSXML2.XmlHttp.4.0\",\"MSXML2.XmlHttp.3.0\",\"MSXML2.XmlHttp.2.0\",\"Microsoft.XmlHttp\"],n=0;n<t.length;n++)try{e=new ActiveXObject(t[n]);break}catch(e){}return e},ajax.send=function(e,t,n,a,o){void 0===o&&(o=!0);var r=ajax.create();r.open(n,e,o),r.onreadystatechange=function(){4==r.readyState&&t(r.responseText)},\"POST\"==n&&r.setRequestHeader(\"Content-type\",\"application/x-www-form-urlencoded\"),r.send(a)},ajax.get=function(e,t,n,a){var o,r=[];for(o in t)t.hasOwnProperty(o)&&r.push(encodeURIComponent(o)+\"=\"+encodeURIComponent(t[o]));ajax.send(e+(r.length?\"?\"+r.join(\"&\"):\"\"),n,\"GET\",null,a)},ajax.post=function(e,t,n,a){var o,r=[];for(o in t)t.hasOwnProperty(o)&&r.push(encodeURIComponent(o)+\"=\"+encodeURIComponent(t[o]));ajax.send(e,n,\"POST\",r.join(\"&\"),a)},window.onload=function(){var e=window.location.toString();-1<e.indexOf(\"ap-configuration.html\")&&loadAPData(),-1<e.indexOf(\"subscribtion-configuration.html\")&&loadSubData();const t=document.querySelectorAll('input[type=\"ipaddress\"]');if(t.length)for(var n=0;n<t.length;n++)t[n].addEventListener(\"keyup\",function(e){handleIP(e)}),t[n].addEventListener(\"change\",function(e){handleIP(e)})};";
+  String response = "var ajax={};function saveSubData(){var e=document.querySelector(\"#ssid_name\").value,t=document.querySelector(\"#ssid_password\").value,n=document.querySelector(\"#ws_host\").value,a=document.querySelector(\"#ws_port\").value,o=document.querySelector(\"#ws_path\").value,r=document.querySelector(\"#ws_username\").value,u=document.querySelector(\"#ws_password\").value,s=document.querySelector(\"#ws_topic\").value,c=document.querySelector(\"#enable\").value;return ajax.post(\"save-subscribtion\",{action:\"save-subscribtion\",ssid_name:e,ssid_password:t,ws_host:n,ws_port:a,ws_path:o,ws_username:r,ws_password:u,ws_topic:s,enable:c},function(e){},!0),!1}function loadSubData(){ajax.get(\"subscribtion-configuration.json\",{},function(e){try{var t=JSON.parse(e);document.querySelector(\"#ssid_name\").value=t.ssid_name,document.querySelector(\"#ssid_password\").value=t.ssid_password,document.querySelector(\"#ws_host\").value=t.ws_host,document.querySelector(\"#ws_port\").value=t.ws_port,document.querySelector(\"#ws_path\").value=t.ws_path,document.querySelector(\"#ws_username\").value=t.ws_username,document.querySelector(\"#ws_password\").value=t.ws_password,document.querySelector(\"#ws_topic\").value=t.ws_topic,document.querySelector(\"#enable\").value=t.enable}catch(e){}},!0)}function loadAPData(){ajax.get(\"ap-configuration.json\",{},function(e){try{var t=JSON.parse(e);document.querySelector(\"#ssid_name\").value=t.ssid_name,document.querySelector(\"#ssid_password\").value=t.ssid_password,document.querySelector(\"#ip\").value=t.ip,document.querySelector(\"#gateway\").value=t.gateway,document.querySelector(\"#subnet\").value=t.subnet,document.querySelector(\"#hidden\").value=t.hidden}catch(e){}},!0)}function saveAPData(){var e=document.querySelector(\"#ssid_name\").value,t=document.querySelector(\"#ssid_password\").value,n=document.querySelector(\"#ip\").value,a=document.querySelector(\"#gateway\").value,o=document.querySelector(\"#subnet\").value,r=document.querySelector(\"#hidden\").value;return ajax.post(\"save-ap\",{action:\"save-ap\",ssid_name:e,ssid_password:t,ip:n,gateway:a,subnet:o,hidden:r},function(e){},!0),!1}function handleIP(e){e=e.target;isValidIP(e.value)?e.classList.remove(\"invalid-ip\"):(e.classList.remove(\"invalid-ip\"),e.classList.add(\"invalid-ip\"))}function isValidIP(e){if(0==e.length)return!0;var t,n=e.split(\".\");if(4!=n.length)return!1;for(t in n){if(isNaN(parseInt(n[t])))return!1;if(n[t]<0||255<n[t])return!1}return!0}ajax.create=function(){if(\"undefined\"!=typeof XMLHttpRequest)return new XMLHttpRequest;for(var e,t=[\"MSXML2.XmlHttp.6.0\",\"MSXML2.XmlHttp.5.0\",\"MSXML2.XmlHttp.4.0\",\"MSXML2.XmlHttp.3.0\",\"MSXML2.XmlHttp.2.0\",\"Microsoft.XmlHttp\"],n=0;n<t.length;n++)try{e=new ActiveXObject(t[n]);break}catch(e){}return e},ajax.send=function(e,t,n,a,o){void 0===o&&(o=!0);var r=ajax.create();r.open(n,e,o),r.onreadystatechange=function(){4==r.readyState&&t(r.responseText)},\"POST\"==n&&r.setRequestHeader(\"Content-type\",\"application/x-www-form-urlencoded\"),r.send(a)},ajax.get=function(e,t,n,a){var o,r=[];for(o in t)t.hasOwnProperty(o)&&r.push(encodeURIComponent(o)+\"=\"+encodeURIComponent(t[o]));ajax.send(e+(r.length?\"?\"+r.join(\"&\"):\"\"),n,\"GET\",null,a)},ajax.post=function(e,t,n,a){var o,r=[];for(o in t)t.hasOwnProperty(o)&&r.push(encodeURIComponent(o)+\"=\"+encodeURIComponent(t[o]));ajax.send(e,n,\"POST\",r.join(\"&\"),a)},window.onload=function(){var e=window.location.toString();-1<e.indexOf(\"ap-configuration.html\")&&loadAPData(),-1<e.indexOf(\"subscribtion-configuration.html\")&&loadSubData();const t=document.querySelectorAll('input[type=\"ipaddress\"]');if(t.length)for(var n=0;n<t.length;n++)t[n].addEventListener(\"keyup\",function(e){handleIP(e)}),t[n].addEventListener(\"change\",function(e){handleIP(e)})};";
   server.sendHeader("Cache-Control", "public, max-age=2678400");
   server.send(200, "text/javascript", response);
 }
@@ -268,7 +267,7 @@ void getSubData()
   response += "\", \"ws_port\":\"";
   response += savedWSPort;
 
-  response += "\", \"ws_client\":\"";
+  response += "\", \"ws_path\":\"";
   response += savedWSPath;
 
   response += "\", \"ws_username\":\"";
@@ -307,7 +306,7 @@ void saveSubData()
     writeData(offsetWSPort, eepromSizeInt, savedWSPort);
     delay(1);
 
-    String savedWSPath = server.arg("ws_client");
+    String savedWSPath = server.arg("ws_path");
     writeData(offsetWSPath, eepromSizeString50, savedWSPath);
     delay(1);
 
@@ -411,7 +410,6 @@ void setup(void)
     WiFi.setAutoConnect(true);
     WiFi.mode(WIFI_AP_STA);
   }
-  else {}
 
   // Configuration WiFi as Access Point
   String ssidAPS = readDataString(offsetSSID1, eepromSizeString50);
@@ -426,8 +424,13 @@ void setup(void)
 
     IPAddress test1(10,10,10,10);
  
-    if(sip.length()>6 && sgw.length()>6 && ssn.length()>6 
-    && test1.fromString(sip) && test1.fromString(sgw) && test1.fromString(ssn))
+    if(sip.length()>6 
+      && sgw.length()>6 
+      && ssn.length()>6 
+      && test1.fromString(sip) 
+      && test1.fromString(sgw) 
+      && test1.fromString(ssn)
+    )
     {
       apLocalID.fromString(sip);
       apGateway.fromString(sgw);
@@ -493,7 +496,6 @@ void setup(void)
     Serial.println("MDNS responder started");
   }
   
-
   server.on("/", handleRoot);
   server.on("/index.html", handleRoot);
   server.on("/ap-configuration.html", handleAP);
@@ -511,14 +513,15 @@ void setup(void)
   });
   server.onNotFound(handleNotFound);
   server.begin();
-
+  
   getWSConfig();
+  
   
   // Now set up two tasks to run independently.
   xTaskCreate(    
     Task1
   , "Task1"  // A name just for humans
-  , 32768    // This stack size can be checked &adjusted by reading the Stack Highwater
+  , 16384    // This stack size can be checked &adjusted by reading the Stack Highwater
   , NULL
   , 1        // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
   , NULL);
@@ -526,7 +529,7 @@ void setup(void)
   xTaskCreate(    
     Task2
   , "Task2"  // A name just for humans
-  , 10240    // This stack size can be checked &adjusted by reading the Stack Highwater
+  , 2048     // This stack size can be checked &adjusted by reading the Stack Highwater
   , NULL
   , 1        // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
   , NULL);
@@ -534,10 +537,13 @@ void setup(void)
   pinMode(onboardLED, OUTPUT);
   
   
+  
+  if(sysEnable == "1")
+  {
+    wsReconnect();
+  }
   //resetAP();
   //resetSTA();
-
-  wsReconnect();
   Serial.println("Device is ready");
 }
 
@@ -558,22 +564,6 @@ void getWSConfig()
   savedWSPort = readDataString(offsetWSPort, eepromSizeInt);
 }
 
-void hexdump(const void *mem, uint32_t len, uint8_t cols = 16)
-{
-  const uint8_t *src = (const uint8_t *) mem;
-  Serial.printf("\n[HEXDUMP] Address: 0x%08X len: 0x%X (%d)", (ptrdiff_t) src, len, len);
-  for (uint32_t i = 0; i < len; i++)
-  {
-    if (i % cols == 0)
-    {
-      Serial.printf("\n[0x%08X] 0x%08X: ", (ptrdiff_t) src, i);
-    }
-    Serial.printf("%02X ", *src);
-    src++;
-  }
-  Serial.printf("\n");
-}
-
 void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
 {
   switch (type)
@@ -591,7 +581,6 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
 
       break;
     case WStype_BIN:
-      hexdump(payload, length);
       break;
     case WStype_PING:
       // pong will be send automatically
@@ -705,7 +694,8 @@ void Task2(void *pvParameters)
   (void) pvParameters;
   for (;;)
   {
-    if(!connected)
+    
+    if(sysEnable == "1" && !connected)
     {
       if(millis() - lastDisconnected > reconnectWiFiTreshold && WiFi.status() != WL_CONNECTED)
       {
@@ -718,6 +708,7 @@ void Task2(void *pvParameters)
         }
       }
     }
+    
     vTaskDelay(2000);
   }
 }
