@@ -7,7 +7,7 @@ body{
     color: #555555;
 }
 h3{
-    margin: 4px 0;
+    margin: 4px 0 10px 0;
 }
 .all{
     width: 900px;
@@ -17,7 +17,7 @@ h3{
     box-sizing: border-box;
 }
 .form-label{
-    padding: 5px 0;
+    padding: 4px 0;
 }
 .form-input{
     position: relative;

@@ -83,40 +83,89 @@
     }
     */
     </style>
+    <script>
+    function sendValue(id, value)
+    {
+        console.log(id, value);
+    }
+    window.onload = function(e){
+        var sw = document.querySelectorAll('.switch');
+        for(var i = 0; i<sw.length; i++)
+        {
+            sw[i].addEventListener('change', function(e2){
+                sendValue(e2.target.getAttribute('id'), e2.target.checked);
+            });
+        }
+    }
+    
+    </script>
 </head>
 <body>
     <div class="all">
         <h3>Relay</h3>      
         <div class="form-item">
+
+
             <div class="flex-container">
                 <div class="flex-item">
-                    <h4>Lapu</h4>
-                    <p>Lampu depan, lampu dapur, lampu kamar</p>
-                </div>
+                    <h4>Input 1</h4>
+                    <p>Connected to GPIO 14</p>
+                 </div>
                 <div class="raw-item">
-                    <input type="checkbox" id="switch1" checked /><label for="switch1">Toggle</label>
+                    <input type="checkbox" class="switch" value="1" id="14" /><label for="14">Toggle</label>
                 </div>
             </div> 
 
             <div class="flex-container">
                 <div class="flex-item">
-                    <h4>Kulkas</h4>
-                    <p>Colokan stabilizer kulkas</p>
+                    <h4>Input 2</h4>
+                    <p>Connected to GPIO 27</p>
                 </div>
                 <div class="raw-item">
-                    <input type="checkbox" id="switch2" /><label for="switch2">Toggle</label>
+                    <input type="checkbox" class="switch" value="1" id="27" /><label for="27">Toggle</label>
                 </div>
             </div> 
 
             <div class="flex-container">
                 <div class="flex-item">
-                    <h4>AC</h4>
-                    <p>Colokan AC</p>
-                </div>
+                    <h4>Input 3</h4>
+                    <p>Connected to GPIO 26</p>
+                 </div>
                 <div class="raw-item">
-                    <input type="checkbox" id="switch3" /><label for="switch3">Toggle</label>
+                    <input type="checkbox" class="switch" value="1" id="26" /><label for="26">Toggle</label>
                 </div>
             </div> 
+
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h4>Input 4</h4>
+                    <p>Connected to GPIO 25</p>
+                </div>
+                <div class="raw-item">
+                    <input type="checkbox" class="switch" value="1" id="25" /><label for="25">Toggle</label>
+                </div>
+            </div> 
+
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h4>Input 5</h4>
+                    <p>Connected to GPIO 33</p>
+                </div>
+                <div class="raw-item">
+                    <input type="checkbox" class="switch" value="1" id="33" /><label for="33">Toggle</label>
+                </div>
+            </div> 
+
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h4>Input 6</h4>
+                    <p>Connected to GPIO 32</p>
+                 </div>
+                <div class="raw-item">
+                    <input type="checkbox" class="switch" value="1" id="32" /><label for="32">Toggle</label>
+                </div>
+            </div> 
+
 
         </div>
     </div>
